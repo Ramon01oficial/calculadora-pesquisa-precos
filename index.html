@@ -14,12 +14,11 @@
     </div>
     <p class="sub-title">Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</p>
 
-    <!-- Área de conteúdo para impressão/PDF -->
     <div id="conteudoParaPDF">
-      <div id="cabecalhoPDF" class="cabecalho-pdf" style="display:none;">
-        <h3>RELATÓRIO DE PESQUISA DE PREÇOS E AUDITORIA</h3>
-        <p>Fundamentação: Art. 23 da Lei nº 14.133/2021 e IN SEGES/ME nº 65/2021</p>
-        <hr>
+      <div id="cabecalhoPDF" class="cabecalho-pdf" style="display:none; text-align:center; margin-bottom:15px;">
+        <h3 style="color:#1a73e8; margin:0;">RELATÓRIO DE PESQUISA DE PREÇOS E AUDITORIA</h3>
+        <p style="font-size:11px; color:#5f6368; margin-top:2px;">Fundamentação: Art. 23 da Lei nº 14.133/2021 e IN SEGES/ME nº 65/2021</p>
+        <hr style="border:0; border-top:2px solid #1a73e8; margin-top:8px;">
       </div>
 
       <div class="table-responsive">
@@ -36,7 +35,7 @@
             </tr>
           </thead>
           <tbody id="corpoTabela">
-            <!-- Linhas dinâmicas -->
+            <!-- Linhas alimentadas via JS -->
           </tbody>
         </table>
       </div>
@@ -49,7 +48,6 @@
       <div id="resultado" class="result-box" style="display:none;"></div>
     </div>
 
-    <!-- Botões de Ação -->
     <div class="botoes-container">
       <button type="button" id="btnAdicionar" class="btn-secundario">+ Adicionar Fornecedor</button>
       <button type="button" id="btnCalcular" class="btn-primary">Calcular e Validar Pesquisa</button>
