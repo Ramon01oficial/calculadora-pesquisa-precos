@@ -8,9 +8,35 @@
 </head>
 <body>
 
-  <div class="container">
-    <h2>Calculadora de Pesquisa de Preços</h2>
-    <span class="subtit">Conforme IN SEGES/ME Nº 65/2021</span>
+  <!-- Tela de Bloqueio por Senha -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-icon">🔒</div>
+      <h3>Acesso Restrito</h3>
+      <p>Digite a senha de autorização para acessar a calculadora de auditoria.</p>
+      
+      <form id="loginForm" onsubmit="validarAcesso(event)">
+        <div class="form-group-login">
+          <input type="password" id="inputSenha" placeholder="Digite sua senha" required autofocus>
+        </div>
+        <button type="submit" class="btn-login">Acessar Sistema</button>
+      </form>
+      
+      <div id="erroSenha" class="erro-senha" style="display: none;">
+        Senha incorreta. Tente novamente.
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal do Sistema (Oculto até autenticar) -->
+  <div id="appContainer" class="container" style="display: none;">
+    <div class="app-header">
+      <div>
+        <h2>Calculadora de Pesquisa de Preços</h2>
+        <span class="subtit">Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</span>
+      </div>
+      <button type="button" class="btn-sair" onclick="bloquearAcesso()">Sair 🔒</button>
+    </div>
 
     <div class="form-group">
       <label>Tabela de Preços Obtidos:</label>
@@ -27,7 +53,7 @@
           </tr>
         </thead>
         <tbody id="corpoTabela">
-          <!-- Linhas geradas dinamicamente via JS -->
+          <!-- Linhas geradas via JS -->
         </tbody>
       </table>
       <button type="button" id="btnAdicionar" class="btn-secundario">+ Adicionar Fornecedor</button>
