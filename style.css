@@ -1,63 +1,216 @@
-/* Restauração dos quadrados de legenda */
-.legendas {
-  margin: 15px 0;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f4f6f9;
+  color: #333;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h2 {
+  color: #1a73e8;
+  font-size: 24px;
+}
+
+.sub-title {
+  color: #5f6368;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.tabela-precos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.tabela-precos th, .tabela-precos td {
+  border: 1px solid #dadce0;
+  padding: 8px;
+  text-align: left;
+}
+
+.tabela-precos th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #3c4043;
+}
+
+.tabela-precos tr.excluido-1 {
+  background-color: #fce8e6;
+}
+
+.tabela-precos tr.excluido-2 {
+  background-color: #fef7e0;
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 13px;
 }
 
-.legendas p {
+input[type="text"]:focus, select:focus {
+  border-color: #1a73e8;
+  outline: none;
+}
+
+.input-justificativa {
+  background-color: #fff8e1;
+  border: 1px solid #f2994a !important;
+  color: #333;
+}
+
+.botoes-container {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 0;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-.legenda-box {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  border-radius: 2px;
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.leg-1 {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
+.btn-primary {
+  background-color: #0b57d0;
+  color: #fff;
+  flex: 1;
 }
 
-.leg-2 {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
+.btn-primary:hover {
+  background-color: #0842a0;
 }
 
-/* Botão do PDF */
+.btn-secundario {
+  background-color: #5f6368;
+  color: #fff;
+}
+
+.btn-secundario:hover {
+  background-color: #3c4043;
+}
+
+.btn-remover {
+  background-color: #d93025;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.btn-remover:hover {
+  background-color: #b31412;
+}
+
 .btn-pdf {
   background-color: #34a853;
-  color: #ffffff;
-  border: none;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-left: 8px;
+  color: #fff;
 }
 
 .btn-pdf:hover {
   background-color: #2d8e47;
 }
 
-/* Regras específicas para impressão em PDF */
+.legendas {
+  font-size: 12px;
+  color: #5f6368;
+  margin-bottom: 15px;
+}
+
+.legendas p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+}
+
+.legenda-box {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+}
+
+.leg-1 { background-color: #fce8e6; border: 1px solid #f5c6cb; }
+.leg-2 { background-color: #fef7e0; border: 1px solid #ffeeba; }
+
+.result-box {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.result-box.sucesso {
+  background-color: #e6f4ea;
+  border: 1px solid #ceedd5;
+  color: #137333;
+}
+
+.result-box.erro {
+  background-color: #fce8e6;
+  border: 1px solid #f5c6cb;
+  color: #c5221f;
+}
+
+.metodos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.metodo-card {
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+}
+
+.metodo-card span {
+  display: block;
+  font-size: 11px;
+  color: #5f6368;
+  font-weight: 600;
+}
+
+.metodo-card strong {
+  font-size: 16px;
+  color: #202124;
+}
+
 @media print {
-  body {
-    background-color: #fff;
-  }
-  .container {
-    box-shadow: none;
-    padding: 0;
-  }
-  .botoes-container, .col-acao {
-    display: none !important;
-  }
-  #cabecalhoPDF {
-    display: block !important;
-  }
+  body { background: #fff; padding: 0; }
+  .container { box-shadow: none; max-width: 100%; }
+  .botoes-container, .col-acao, .btn-remover { display: none !important; }
+  #cabecalhoPDF { display: block !important; }
 }
