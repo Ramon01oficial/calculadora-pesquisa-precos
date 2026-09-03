@@ -3,70 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Pesquisa de Preços - IN 65/2021</title>
+  <title>Calculadora de Pesquisa de Preços</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-  <!-- Tela de Bloqueio por Senha -->
-  <div id="loginOverlay" class="login-overlay">
-    <div class="login-card">
-      <div class="login-icon">🔒</div>
-      <h3>Acesso Restrito</h3>
-      <p>Digite a senha de autorização para acessar a calculadora de auditoria.</p>
-      
-<form id="loginForm" action="javascript:void(0);" onsubmit="validarAcesso(event)">
-  <div class="form-group-login">
-          <input type="password" id="inputSenha" placeholder="Digite sua senha" required autofocus>
-        </div>
-        <button type="submit" class="btn-login">Acessar Sistema</button>
-      </form>
-      
-      <div id="erroSenha" class="erro-senha" style="display: none;">
-        Senha incorreta. Tente novamente.
-      </div>
+  <!-- Container Principal sem restrição -->
+  <div id="appContainer" class="container">
+    <div class="header-actions">
+      <h2>Calculadora de Pesquisa de Preços</h2>
     </div>
-  </div>
+    <p class="sub-title">Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</p>
 
-  <!-- Conteúdo Principal do Sistema (Oculto até autenticar) -->
-  <div id="appContainer" class="container" style="display: none;">
-    <div class="app-header">
-      <div>
-        <h2>Calculadora de Pesquisa de Preços</h2>
-        <span class="subtit">Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</span>
+    <!-- Área de conteúdo para o PDF -->
+    <div id="conteudoParaPDF">
+      <div id="cabecalhoPDF" class="cabecalho-pdf" style="display:none;">
+        <h3>RELATÓRIO DE PESQUISA DE PREÇOS E AUDITORIA</h3>
+        <p>Fundamentação: Art. 23 da Lei nº 14.133/2021 e IN SEGES/ME nº 65/2021</p>
+        <hr>
       </div>
-      <button type="button" class="btn-sair" onclick="bloquearAcesso()">Sair 🔒</button>
+
+      <div class="table-responsive">
+        <table class="tabela-precos">
+          <thead>
+            <tr>
+              <th style="width: 5%;">Nº</th>
+              <th style="width: 30%;">Fornecedor</th>
+              <th style="width: 20%;">CNPJ</th>
+              <th style="width: 12%;">Tipo</th>
+              <th style="width: 15%;">Valor (R$)</th>
+              <th style="width: 18%;">Status / Expurgo</th>
+              <th class="col-acao" style="width: 10%;">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="corpoTabela">
+            <!-- Linhas dinâmicas -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="legendas col-acao">
+        <p><span class="legenda-box leg-1"></span> Excluído na primeira análise (Inexequível / Excessivo)</p>
+        <p><span class="legenda-box leg-2"></span> Excluído na segunda análise (Ajuste Técnico / Outlier)</p>
+      </div>
+
+      <div id="resultado" class="result-box" style="display:none;"></div>
     </div>
 
-    <div class="form-group">
-      <label>Tabela de Preços Obtidos:</label>
-      <table id="tabelaPrecos">
-        <thead>
-          <tr>
-            <th style="width: 5%;">Nº</th>
-            <th style="width: 30%;">Fornecedor</th>
-            <th style="width: 18%;">CNPJ</th>
-            <th style="width: 12%;">Tipo</th>
-            <th style="width: 13%;">Valor (R$)</th>
-            <th style="width: 14%;">Status / Expurgo</th>
-            <th style="width: 8%;">Ação</th>
-          </tr>
-        </thead>
-        <tbody id="corpoTabela">
-          <!-- Linhas geradas via JS -->
-        </tbody>
-      </table>
+    <!-- Botões de Ação -->
+    <div class="botoes-container">
       <button type="button" id="btnAdicionar" class="btn-secundario">+ Adicionar Fornecedor</button>
+      <button type="button" id="btnCalcular" class="btn-primary">Calcular e Validar Pesquisa</button>
+      <button type="button" id="btnGerarPDF" class="btn-pdf" style="display:none;" onclick="gerarPDF()">📄 Exportar Parecer (PDF)</button>
     </div>
-
-    <div class="legenda-box">
-      <span class="legenda-item legenda-red">■ Excluído na primeira análise (Inexequível / Excessivo)</span><br>
-      <span class="legenda-item legenda-blue">■ Excluído na segunda análise (Ajuste Técnico / Outlier)</span>
-    </div>
-
-    <button type="button" id="btnCalcular">Calcular e Validar Pesquisa</button>
-
-    <div id="resultado" class="result-box" style="display:none;"></div>
   </div>
 
   <script src="script.js"></script>
