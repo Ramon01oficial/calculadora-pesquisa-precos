@@ -147,14 +147,14 @@ function calcularCV(arr) {
   return (desvioPadrao / media) * 100;
 }
 
-// Cálculo e expurgo automático de Outliers (IN 65/2021)
+// Cálculo e expurgo automático totalmente autônomo (IN 65/2021)
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
 
   let itensValidos = [];
 
-  // 1. Coleta dados das linhas
+  // 1. Coleta dados das linhas válidas e limpa expurgos de 2ª análise antigos
   linhas.forEach(tr => {
     let selectExpurgo = tr.querySelector('.select-expurgo');
     let rawVal = tr.querySelector('.input-valor').value.replace(/\./g, '').replace(',', '.');
@@ -179,12 +179,12 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     return;
   }
 
-  // 2. Loop de saneamento de Outliers
+  // 2. Loop de saneamento de Outliers sem interrupção antecipada
   let valores = itensValidos.map(i => i.valor);
   let cvAtual = calcularCV(valores);
   let houveExpurgoAutomatico = false;
 
-  while (cvAtual > 25 && itensValidos.length >= 3) {
+  while (cvAtual > 25 && itensValidos.length > 2) {
     let mediaTemp = calcularMedia(itensValidos.map(i => i.valor));
     
     let indexOutlier = 0;
@@ -234,7 +234,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
     let statusCv = cvFinal <= 25 
       ? "<span style='color:green; font-weight:bold;'>Homogêneo (<= 25%)</span>" 
-      : "<span style='color:red; font-weight:bold;'>Heterogêneo (> 25%)</span>";
+      : "<span style='color:red; font-weight:bold;'>Heterogêneo (> 25%) - Amostra requer atenção</span>";
 
     dadosEstatisticos = `
       <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
@@ -245,11 +245,11 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
   let avisoExpurgo = houveExpurgoAutomatico 
     ? `<div style="margin-bottom:10px; padding:8px; background:#e8f0fe; border-left:4px solid #1a73e8; color:#1a73e8; font-weight:bold;">
-        ℹ️ Foram identificados e marcados automaticamente os preços discrepantes (Outliers em azul) para adequação ao CV <= 25%.
+        ℹ️ O sistema realizou o expurgo automático dos valores discrepantes (Outliers em azul) para buscar o CV <= 25%.
        </div>`
     : '';
 
-  divResultado.className = (qtdValidos < 3) ? 'result-box alerta' : 'result-box sucesso';
+  divResultado.className = (qtdValidos < 3 || cvFinal > 25) ? 'result-box alerta' : 'result-box sucesso';
 
   divResultado.innerHTML = `
     ${avisoExpurgo}
