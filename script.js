@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     linhas.forEach(tr => {
       const val = moedaParaFloat(tr.querySelector(".input-valor").value);
       const status = tr.querySelector(".select-status").value;
-      if (val > 0 && status === "valido") {
+      if (val > 0 && (status === "valido" || status === "automatico")) {
         validosCount++;
       }
     });
@@ -110,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <td>
         <select class="input-sim select-status">
           <option value="valido" selected>Válido</option>
-          <option value="excluido_1">Excluído (Inex./Excessivo)</option>
-          <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
+          <option value="excluido_1">Excluído (Inex./Excessivo - 1ª Análise)</option>
+          <option value="excluido_2">Excluído Manual (2ª Análise)</option>
         </select>
       </td>
       <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
@@ -119,6 +119,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     corpoTabela.appendChild(tr);
   });
+
+  function calcularEstatisticas(listaValores) {
+    let n = listaValores.length;
+    if (n === 0) return { media: 0, mediana: 0, menor: 0, desvio: 0, cv: 0 };
+    let soma = listaValores.reduce((a, b) => a + b, 0);
+    let media = soma / n;
+    let menor = Math.min(...listaValores);
+
+    let ordenados = [...listaValores].sort((a, b) => a - b);
+    let mediana = 0;
+    let meio = Math.floor(n / 2);
+    if (n % 2 === 0) {
+      mediana = (ordenados[meio - 1] + ordenados[meio]) / 2;
+    } else {
+      mediana = ordenados[meio];
+    }
+
+    let desvio = 0;
+    if (n > 1) {
+      let variancia = listaValores.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (n - 1);
+      desvio = Math.sqrt(variancia);
+    }
+    let cv = media > 0 ? (desvio / media) * 100 : 0;
+    return { media, mediana, menor, desvio, cv };
+  }
 
   btnCalcular.addEventListener("click", () => {
     const linhas = corpoTabela.querySelectorAll("tr");
@@ -145,63 +170,79 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let validosAtuais = itens.filter(i => i.statusManual === "valido");
-    let expurgadosCount = itens.length - validosAtuais.length;
+    // 1. Separar os excluídos manualmente na 1ª análise (Inexequíveis / Excessivos)
+    let itensPrimeiraAnalise = itens.filter(i => i.statusManual === "excluido_1");
+    let candidatosRestantes = itens.filter(i => i.statusManual !== "excluido_1");
+
+    if (candidatosRestantes.length < 2) {
+      alert("Atenção: Após a 1ª análise, restaram menos de 2 preços. Ajuste os filtros.");
+      return;
+    }
+
+    // 2. Verificar homogeneidade inicial dos restantes (CV)
+    let valoresCandidatos = candidatosRestantes.map(i => i.valor);
+    let estatInicial = calcularEstatisticas(valoresCandidatos);
+
+    let expurgosSegundaAnaliseCount = 0;
+    let validosAtuais = [...candidatosRestantes];
+
+    // AUTOMAÇÃO DA 2ª ANÁLISE (Se CV > 25% e houver mais de 2 itens, o sistema expurga automaticamente o outlier mais distante da média)
+    let infoAutomaticaTexto = "";
+    if (estatInicial.cv > 25 && candidatosRestantes.length > 2) {
+      // Loop para tentar otimizar a homogeneidade se possível mantendo ao menos 2 ou 3 itens
+      while (validosAtuais.length > 2) {
+        let valsTemp = validosAtuais.map(i => i.valor);
+        let estatTemp = calcularEstatisticas(valsTemp);
+        
+        if (estatTemp.cv <= 25) break; // Ficou homogêneo!
+
+        // Encontrar o item mais distante da média (maior desvio absoluto)
+        let mediaAtual = estatTemp.media;
+        let itemMaisDistante = validosAtuais.reduce((prev, curr) => {
+          return Math.abs(curr.valor - mediaAtual) > Math.abs(prev.valor - mediaAtual) ? curr : prev;
+        });
+
+        // Remove dos válidos e conta como expurgado na 2ª análise automática
+        validosAtuais = validosAtuais.filter(i => i.index !== itemMaisDistante.index);
+        expurgosSegundaAnaliseCount++;
+      }
+      infoAutomaticaTexto = ` (Expurgo automático de outlier realizado por inteligência estatística para adequação ao CV ≤ 25%)`;
+    }
+
+    let totalExpurgados = itensPrimeiraAnalise.length + expurgosSegundaAnaliseCount;
 
     if (validosAtuais.length < 2) {
-      alert("Atenção: A pesquisa de preços requer no mínimo 2 preços válidos. Ajuste o status ou adicione mais itens.");
+      alert("Atenção: A filtragem automática reduziu os preços válidos a menos de 2. Reveja os valores informados.");
       return;
     }
 
     if (validosAtuais.length === 2 && inputJustificativaDoisItens.value.trim() === "") {
-      alert("Atenção: Como a pesquisa possui apenas 2 preços válidos, é obrigatório registrar a justificativa para constar nos autos.");
+      alert("Atenção: Como a pesquisa possui apenas 2 preços válidos após as análises, é obrigatório registrar a justificativa.");
       inputJustificativaDoisItens.focus();
       return;
     }
 
-    function calcularEstatisticas(listaValores) {
-      let n = listaValores.length;
-      if (n === 0) return { media: 0, mediana: 0, menor: 0, desvio: 0, cv: 0 };
-      let soma = listaValores.reduce((a, b) => a + b, 0);
-      let media = soma / n;
-      let menor = Math.min(...listaValores);
+    let valoresValidosFinal = validosAtuais.map(i => i.valor);
+    let estatFinal = calcularEstatisticas(valoresValidosFinal);
 
-      let ordenados = [...listaValores].sort((a, b) => a - b);
-      let mediana = 0;
-      let meio = Math.floor(n / 2);
-      if (n % 2 === 0) {
-        mediana = (ordenados[meio - 1] + ordenados[meio]) / 2;
-      } else {
-        mediana = ordenados[meio];
-      }
-
-      let desvio = 0;
-      if (n > 1) {
-        let variancia = listaValores.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (n - 1);
-        desvio = Math.sqrt(variancia);
-      }
-      let cv = media > 0 ? (desvio / media) * 100 : 0;
-      return { media, mediana, menor, desvio, cv };
-    }
-
-    let valoresValidos = validosAtuais.map(i => i.valor);
-    let estat = calcularEstatisticas(valoresValidos);
-
+    // Preenchendo os campos do painel
     document.getElementById("qtdValidos").textContent = validosAtuais.length;
-    document.getElementById("qtdExpurgados").textContent = expurgadosCount;
+    document.getElementById("qtdExpurgados").textContent = totalExpurgados;
 
-    document.getElementById("valMedia").textContent = floatParaMoeda(estat.media);
-    document.getElementById("valMediana").textContent = floatParaMoeda(estat.mediana);
-    document.getElementById("valMenor").textContent = floatParaMoeda(estat.menor);
-
-    document.getElementById("valDesvio").textContent = floatParaMoeda(estat.desvio);
-    document.getElementById("valCV").textContent = estat.cv.toFixed(2) + "%";
-
-    let badgeCV = document.getElementById("badgeCV");
+    // Se quisermos detalhar visualmente na tela a contagem exata por etapa:
+    // Vamos injetar ou atualizar os textos do card de aviso
     let alertaAviso = document.getElementById("alertaAviso");
     let textoInfo = document.getElementById("textoInfo");
 
-    if (estat.cv <= 25) {
+    document.getElementById("valMedia").textContent = floatParaMoeda(estatFinal.media);
+    document.getElementById("valMediana").textContent = floatParaMoeda(estatFinal.mediana);
+    document.getElementById("valMenor").textContent = floatParaMoeda(estatFinal.menor);
+
+    document.getElementById("valDesvio").textContent = floatParaMoeda(estatFinal.desvio);
+    document.getElementById("valCV").textContent = estatFinal.cv.toFixed(2) + "%";
+
+    let badgeCV = document.getElementById("badgeCV");
+    if (estatFinal.cv <= 25) {
       badgeCV.textContent = `Homogêneo (≤ 25%)`;
       badgeCV.className = "badge-success";
       badgeCV.style.color = "#16a34a";
@@ -212,20 +253,10 @@ document.addEventListener("DOMContentLoaded", () => {
       badgeCV.style.fontWeight = "700";
     }
 
-    if (expurgadosCount > 0 || validosAtuais.length === 2) {
-      alertaAviso.style.display = "block";
-      let msg = `A pesquisa foi consolidada com ${validosAtuais.length} preços válidos`;
-      if (validosAtuais.length === 2) {
-        msg += ` (com indicação de justificativa nos autos)`;
-      }
-      if (expurgadosCount > 0) {
-        msg += `, restando ${expurgadosCount} item(ns) desconsiderado(s)`;
-      }
-      textoInfo.textContent = msg + ".";
-    } else {
-      alertaAviso.style.display = "none";
-      textoInfo.textContent = "A pesquisa restou consolidada com os preços informados, atendendo aos parâmetros de homogeneidade.";
-    }
+    alertaAviso.style.display = "block";
+    textoInfo.innerHTML = `Pesquisa consolidada com <b>${validosAtuais.length}</b> preços válidos. ` +
+      `<i>1ª Análise (Inex./Excessivos):</i> ${itensPrimeiraAnalise.length} item(ns) | ` +
+      `<i>2ª Análise (Outliers Automáticos):</i> ${expurgosSegundaAnaliseCount} item(ns)${infoAutomaticaTexto}.`;
 
     painelResultado.style.display = "block";
   });
