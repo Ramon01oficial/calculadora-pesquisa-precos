@@ -1,23 +1,13 @@
-// Hash SHA-256 da senha 'auditoria2026'
-const HASH_SENHA_CORRETA = "402eb06ffea49d53b27dce7e74868037dfc888e0b6dfa9a5a7b693df3fbcfef4";
-
-// Função para gerar Hash SHA-256 no navegador
-async function gerarSHA256(texto) {
-  const msgUint8 = new TextEncoder().encode(texto);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+// Senha de acesso direta
+const SENHA_CORRETA = "auditoria2026";
 
 // Validação de Acesso
-async function validarAcesso(event) {
+function validarAcesso(event) {
   event.preventDefault();
-  const inputSenha = document.getElementById('inputSenha').value;
+  const inputSenha = document.getElementById('inputSenha').value.trim();
   const erroSenha = document.getElementById('erroSenha');
 
-  const hashDigitado = await gerarSHA256(inputSenha);
-
-  if (hashDigitado === HASH_SENHA_CORRETA) {
+  if (inputSenha === SENHA_CORRETA) {
     sessionStorage.setItem('autenticado_in65', 'true');
     exibirSistema();
   } else {
