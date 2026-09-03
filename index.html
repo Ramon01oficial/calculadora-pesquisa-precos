@@ -8,50 +8,124 @@
 </head>
 <body>
 
-  <div id="appContainer" class="container">
-    <div class="header-actions">
-      <h2>Calculadora de Pesquisa de Preços</h2>
-    </div>
-    <p class="sub-title">Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</p>
-
-    <div id="conteudoParaPDF">
-      <div id="cabecalhoPDF" class="cabecalho-pdf" style="display:none; text-align:center; margin-bottom:15px;">
-        <h3 style="color:#1a73e8; margin:0;">RELATÓRIO DE PESQUISA DE PREÇOS E AUDITORIA</h3>
-        <p style="font-size:11px; color:#5f6368; margin-top:2px;">Fundamentação: Art. 23 da Lei nº 14.133/2021 e IN SEGES/ME nº 65/2021</p>
-        <hr style="border:0; border-top:2px solid #1a73e8; margin-top:8px;">
-      </div>
-
-      <div class="table-responsive">
-        <table class="tabela-precos">
-          <thead>
-            <tr>
-              <th style="width: 5%;">Nº</th>
-              <th style="width: 30%;">Fornecedor</th>
-              <th style="width: 20%;">CNPJ</th>
-              <th style="width: 12%;">Tipo</th>
-              <th style="width: 15%;">Valor (R$)</th>
-              <th style="width: 18%;">Status / Expurgo</th>
-              <th class="col-acao" style="width: 10%;">Ação</th>
-            </tr>
-          </thead>
-          <tbody id="corpoTabela">
-            <!-- Linhas alimentadas via JS -->
-          </tbody>
-        </table>
-      </div>
-
-      <div class="legendas col-acao">
-        <p><span class="legenda-box leg-1"></span> Excluído na primeira análise (Inexequível / Excessivo)</p>
-        <p><span class="legenda-box leg-2"></span> Excluído na segunda análise (Ajuste Técnico / Outlier)</p>
-      </div>
-
-      <div id="resultado" class="result-box" style="display:none;"></div>
+  <div class="container">
+    <div class="header">
+      <h1>Calculadora de Pesquisa de Preços</h1>
+      <p>Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</p>
     </div>
 
-    <div class="botoes-container">
-      <button type="button" id="btnAdicionar" class="btn-secundario">+ Adicionar Fornecedor</button>
-      <button type="button" id="btnCalcular" class="btn-primary">Calcular e Validar Pesquisa</button>
-      <button type="button" id="btnGerarPDF" class="btn-pdf" style="display:none;" onclick="gerarPDF()">📄 Exportar Parecer (PDF)</button>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 5%; text-align: center;">Nº</th>
+            <th style="width: 28%;">Fornecedor</th>
+            <th style="width: 20%;">CNPJ</th>
+            <th style="width: 12%;">Tipo</th>
+            <th style="width: 15%;">Valor (R$)</th>
+            <th style="width: 130px;">Status / Expurgo</th>
+            <th style="width: 8%; text-align: center;">Ação</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabela">
+          <tr>
+            <td style="text-align: center; font-weight: 600; color: #0284c7;">1</td>
+            <td><input type="text" class="input-sim" value="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim" value="00.000.000/0000-00"></td>
+            <td>
+              <select class="input-sim">
+                <option selected>Pública</option>
+                <option>Privada</option>
+              </select>
+            </td>
+            <td><input type="text" class="input-sim input-highlight" value="5,25"></td>
+            <td>
+              <span class="status-badge-excluido">Excluído 2ª</span>
+              <span class="status-sub">Expurgado automati.</span>
+            </td>
+            <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-weight: 600;">2</td>
+            <td><input type="text" class="input-sim" value="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim" value="00.000.000/0000-00"></td>
+            <td>
+              <select class="input-sim">
+                <option selected>Pública</option>
+                <option>Privada</option>
+              </select>
+            </td>
+            <td><input type="text" class="input-sim" value="25,25"></td>
+            <td><span class="status-badge-valido">Válido</span></td>
+            <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-weight: 600;">3</td>
+            <td><input type="text" class="input-sim" value="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim" value="00.000.000/0000-00"></td>
+            <td>
+              <select class="input-sim">
+                <option selected>Pública</option>
+                <option>Privada</option>
+              </select>
+            </td>
+            <td><input type="text" class="input-sim" value="25,25"></td>
+            <td><span class="status-badge-valido">Válido</span></td>
+            <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legendas">
+      <div class="legenda-item"><span class="legenda-box leg-1"></span> Excluído na primeira análise (Inexequível / Excessivo)</div>
+      <div class="legenda-item"><span class="legenda-box leg-2"></span> Excluído na segunda análise (Ajuste Técnico / Outlier)</div>
+    </div>
+
+    <div class="painel-resultado">
+      <div class="alert-box alert-info">
+        <strong>📌 ORIENTAÇÃO PARA A INSTRUÇÃO PROCESSUAL (Art. 6º, § 4º, IN SEGES/ME 65/2021):</strong><br>
+        A pesquisa restou consolidada com <strong>2 preço(s) válido(s)</strong>.<br>
+        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado que impediu a obtenção do número mínimo de 3 cotações.</em>
+      </div>
+
+      <div class="alert-box alert-warning">
+        ⚡ O sistema realizou o expurgo automático de outlier(s) para sanear o CV &le; 25%.
+      </div>
+
+      <div class="stats-summary">
+        <strong>Preços Válidos Utilizados:</strong> 2 item(ns)<br>
+        <strong>Preços Desconsiderados (Expurgados):</strong> 1 item(ns)
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Média Simples</div>
+          <div class="metric-value">R$ 25,25</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Mediana</div>
+          <div class="metric-value">R$ 25,25</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Menor Preço</div>
+          <div class="metric-value">R$ 25,25</div>
+        </div>
+      </div>
+
+      <div class="statistical-details">
+        <strong>Desvio Padrão Final:</strong> R$ 0,00<br>
+        <strong>Coeficiente de Variação Final (CV):</strong> 0,00% - <span class="badge-success">Homogêneo (&le; 25%)</span>
+      </div>
+
+      <div class="recommendation-box">
+        <strong>Sugestão Metodológica:</strong> Recomenda-se utilizar a <strong>MÉDIA SIMPLES (R$ 25,25)</strong> como valor estimado.
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-add" id="btnAdicionar">+ Adicionar Fornecedor</button>
+      <button class="btn-calc" id="btnCalcular">Calcular e Validar Pesquisa</button>
     </div>
   </div>
 
