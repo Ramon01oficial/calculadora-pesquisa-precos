@@ -1,19 +1,22 @@
-// Senha de acesso direta
+// Senha de acesso definida
 const SENHA_CORRETA = "auditoria2026";
 
-// Validação de Acesso
 function validarAcesso(event) {
-  event.preventDefault();
-  const inputSenha = document.getElementById('inputSenha').value.trim();
+  if (event) event.preventDefault();
+  
+  const campoInput = document.getElementById('inputSenha');
   const erroSenha = document.getElementById('erroSenha');
+  
+  // Trata espaços e maiúsculas acidentais
+  const senhaDigitada = campoInput.value.trim().toLowerCase();
 
-  if (inputSenha === SENHA_CORRETA) {
+  if (senhaDigitada === SENHA_CORRETA) {
     sessionStorage.setItem('autenticado_in65', 'true');
     exibirSistema();
   } else {
     erroSenha.style.display = 'block';
-    document.getElementById('inputSenha').value = '';
-    document.getElementById('inputSenha').focus();
+    campoInput.value = '';
+    campoInput.focus();
   }
 }
 
@@ -30,14 +33,14 @@ function bloquearAcesso() {
   document.getElementById('erroSenha').style.display = 'none';
 }
 
-// Verificar se já autenticou na sessão atual
+// Verifica sessão salva
 window.addEventListener('DOMContentLoaded', () => {
   if (sessionStorage.getItem('autenticado_in65') === 'true') {
     exibirSistema();
   }
 });
 
-/* --- Lógica de Negócio da Calculadora --- */
+/* --- Lógica da Calculadora --- */
 let contadorLinhas = 0;
 
 function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO') {
@@ -96,12 +99,10 @@ function renumerarTabela() {
   });
 }
 
-// Inicializa com 3 linhas padrão
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
-// Cálculo estatístico
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
