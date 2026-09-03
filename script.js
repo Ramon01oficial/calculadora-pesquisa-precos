@@ -1,5 +1,5 @@
 // Configuração da senha
-const SENHA_SISTEMA = "ramon123";
+const SENHA_SISTEMA = "auditoria2026";
 
 function validarAcesso(event) {
   if (event) event.preventDefault();
@@ -40,17 +40,14 @@ window.addEventListener('load', () => {
 
 /* --- Função de Máscara Moeda (Real em Tempo Real) --- */
 function formatarMoedaInput(input) {
-  let value = input.value.replace(/\D/g, ""); // Remove tudo que não for dígito
+  let value = input.value.replace(/\D/g, "");
   
   if (value === "") {
     input.value = "";
     return;
   }
 
-  // Converte para centavos e formata no padrão brasileiro
   value = (parseInt(value, 10) / 100).toFixed(2);
-  
-  // Substitui ponto decimal por vírgula e aplica separador de milhar
   value = value.replace(".", ",");
   value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   
@@ -122,57 +119,106 @@ adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
-// Cálculo estatístico
+// Funções auxiliares estatísticas
+function calcularMedia(arr) {
+  return arr.reduce((acc, v) => acc + v, 0) / arr.length;
+}
+
+function calcularCV(arr) {
+  if (arr.length < 2) return 0;
+  let media = calcularMedia(arr);
+  let variancia = arr.reduce((acc, v) => acc + Math.pow(v - media, 2), 0) / (arr.length - 1);
+  let desvioPadrao = Math.sqrt(variancia);
+  return (desvioPadrao / media) * 100;
+}
+
+// Cálculo e expurgo automático de Outliers (IN 65/2021)
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
 
-  let valoresValidos = [];
-  let qtdDesconsiderados = 0;
+  let itensValidos = [];
 
+  // 1. Coleta dados das linhas
   linhas.forEach(tr => {
-    let statusExpurgo = tr.querySelector('.select-expurgo').value;
-    
-    // Tratamento dos valores formatados (remove os pontos de milhar e troca vírgula por ponto)
+    let selectExpurgo = tr.querySelector('.select-expurgo');
     let rawVal = tr.querySelector('.input-valor').value.replace(/\./g, '').replace(',', '.');
     let val = parseFloat(rawVal);
 
     if (!isNaN(val) && val > 0) {
-      if (statusExpurgo === 'VALIDO') {
-        valoresValidos.push(val);
-      } else {
-        qtdDesconsiderados++;
+      // Zera expurgos de 2ª análise anteriores para recalcular limpo
+      if (selectExpurgo.value === 'EXCLUIDO_2') {
+        selectExpurgo.value = 'VALIDO';
+        atualizarEstiloLinha(selectExpurgo);
+      }
+
+      if (selectExpurgo.value === 'VALIDO') {
+        itensValidos.push({ tr, valor: val, selectExpurgo });
       }
     }
   });
 
-  let qtdValidos = valoresValidos.length;
-
-  if (qtdValidos === 0) {
+  if (itensValidos.length === 0) {
     divResultado.className = 'result-box erro';
     divResultado.innerHTML = '<strong>Erro:</strong> Informe pelo menos um valor válido para calcular.';
     divResultado.style.display = 'block';
     return;
   }
 
-  valoresValidos.sort((a, b) => a - b);
+  // 2. Loop de saneamento de Outliers (Ajuste Técnico / 2ª Análise)
+  let valores = itensValidos.map(i => i.valor);
+  let cvAtual = calcularCV(valores);
+  let houveExpurgoAutomatico = false;
 
-  let soma = valoresValidos.reduce((acc, v) => acc + v, 0);
+  // Enquanto o CV for maior que 25% e houver pelo menos 3 itens, remove o valor mais distante
+  while (cvAtual > 25 && itensValidos.length >= 3) {
+    let mediaTemp = calcularMedia(itensValidos.map(i => i.valor));
+    
+    // Identifica o item mais distante da média (outlier)
+    let indexOutlier = 0;
+    let maiorDistancia = -1;
+
+    itensValidos.forEach((item, idx) => {
+      let dist = Math.abs(item.valor - mediaTemp);
+      if (dist > maiorDistancia) {
+        maiorDistancia = dist;
+        indexOutlier = idx;
+      }
+    });
+
+    // Aplica o expurgo no elemento visual
+    let itemRemovido = itensValidos.splice(indexOutlier, 1)[0];
+    itemRemovido.selectExpurgo.value = 'EXCLUIDO_2';
+    atualizarEstiloLinha(itemRemovido.selectExpurgo);
+    houveExpurgoAutomatico = true;
+
+    // Recalcula CV com a nova amostra
+    valores = itensValidos.map(i => i.valor);
+    cvAtual = calcularCV(valores);
+  }
+
+  // 3. Processa resultados finais com os itens válidos restantes
+  let qtdValidos = itensValidos.length;
+  let qtdDesconsiderados = document.querySelectorAll('.select-expurgo:not([value="VALIDO"])').length;
+
+  valores.sort((a, b) => a - b);
+
+  let soma = valores.reduce((acc, v) => acc + v, 0);
   let mediaFinal = soma / qtdValidos;
 
   let meio = Math.floor(qtdValidos / 2);
   let medianaFinal = (qtdValidos % 2 !== 0) 
-    ? valoresValidos[meio] 
-    : (valoresValidos[meio - 1] + valoresValidos[meio]) / 2;
+    ? valores[meio] 
+    : (valores[meio - 1] + valores[meio]) / 2;
 
-  let menorPrecoFinal = valoresValidos[0];
+  let menorPrecoFinal = valores[0];
 
   let desvioPadrao = 0;
   let cvFinal = 0;
   let dadosEstatisticos = '';
 
   if (qtdValidos >= 2) {
-    let variancia = valoresValidos.reduce((acc, v) => acc + Math.pow(v - mediaFinal, 2), 0) / (qtdValidos - 1);
+    let variancia = valores.reduce((acc, v) => acc + Math.pow(v - mediaFinal, 2), 0) / (qtdValidos - 1);
     desvioPadrao = Math.sqrt(variancia);
     cvFinal = (desvioPadrao / mediaFinal) * 100;
 
@@ -182,16 +228,23 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
     dadosEstatisticos = `
       <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
-      <strong>Desvio Padrão:</strong> R$ ${desvioPadrao.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}<br>
+      <strong>Desvio Padrão Final:</strong> R$ ${desvioPadrao.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}<br>
       <strong>Coeficiente de Variação Final (CV):</strong> ${cvFinal.toFixed(2).replace('.', ',')}% - ${statusCv}
     `;
   }
 
+  let avisoExpurgo = houveExpurgoAutomatico 
+    ? `<div style="margin-bottom:10px; padding:8px; background:#e8f0fe; border-left:4px solid #1a73e8; color:#1a73e8; font-weight:bold;">
+        ℹ️ Foram identificados e marcados automaticamente os preços discrepantes (Outliers em azul) para adequação ao CV <= 25%.
+       </div>`
+    : '';
+
   divResultado.className = (qtdValidos < 3) ? 'result-box alerta' : 'result-box sucesso';
 
   divResultado.innerHTML = `
+    ${avisoExpurgo}
     <strong>Preços Válidos Utilizados:</strong> ${qtdValidos} item(ns)<br>
-    <strong>Preços Desconsiderados Automáticos:</strong> ${qtdDesconsiderados} item(ns)<br>
+    <strong>Preços Desconsiderados (Expurgados):</strong> ${qtdDesconsiderados} item(ns)<br>
     
     <div class="metodos-grid">
       <div class="metodo-card">
