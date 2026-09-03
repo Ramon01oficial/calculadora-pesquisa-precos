@@ -42,6 +42,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  corpoTabela.addEventListener("change", (e) => {
+    if (e.target.classList.contains("select-status")) {
+      const td = e.target.closest("td");
+      const inputJustificativa = td.querySelector(".input-justificativa");
+      if (e.target.value !== "valido") {
+        inputJustificativa.style.display = "block";
+      } else {
+        inputJustificativa.style.display = "none";
+        inputJustificativa.value = "";
+      }
+    }
+  });
+
   corpoTabela.addEventListener("blur", (e) => {
     if (e.target.classList.contains("input-valor")) {
       if (!e.target.value || e.target.value.trim() === "") {
@@ -85,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
           <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
         </select>
+        <input type="text" class="input-sim input-justificativa" placeholder="Descreva a justificativa do expurgo..." style="display: none; margin-top: 4px;">
       </td>
       <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
     `;
@@ -99,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     linhas.forEach((tr, idx) => {
       const inputValor = tr.querySelector(".input-valor");
       const selectStatus = tr.querySelector(".select-status");
+      const inputJustificativa = tr.querySelector(".input-justificativa");
       let val = moedaParaFloat(inputValor.value);
 
       if (val > 0) {
@@ -106,8 +121,10 @@ document.addEventListener("DOMContentLoaded", () => {
           index: idx,
           tr: tr,
           selectStatus: selectStatus,
+          inputJustificativa: inputJustificativa,
           valor: val,
-          statusManual: selectStatus.value
+          statusManual: selectStatus.value,
+          justificativa: inputJustificativa.value
         });
       }
     });
@@ -117,11 +134,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Filtrar itens considerados válidos com base na seleção do usuário na tabela
     let validosAtuais = itens.filter(i => i.statusManual === "valido");
     let expurgadosCount = itens.length - validosAtuais.length;
 
-    // Regra especial: Itens específicos aceitam mínimo de 2 preços válidos
+    // Regra de validação para itens específicos (mínimo de 2 preços válidos)
     if (validosAtuais.length < 2) {
       alert("Atenção: A pesquisa de preços requer no mínimo 2 preços válidos (conforme regra de itens específicos/justificados). Ajuste o status ou adicione mais itens.");
       return;
@@ -155,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let valoresValidos = validosAtuais.map(i => i.valor);
     let estat = calcularEstatisticas(valoresValidos);
 
-    // Atualização dos elementos no DOM
     document.getElementById("qtdValidos").textContent = validosAtuais.length;
     document.getElementById("qtdExpurgados").textContent = expurgadosCount;
 
