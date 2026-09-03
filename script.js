@@ -1,44 +1,61 @@
-// Senha de acesso definida
-const SENHA_CORRETA = "auditoria2026";
+// Configuração da senha
+const SENHA_SISTEMA = "ramon123";
 
 function validarAcesso(event) {
   if (event) event.preventDefault();
   
-  const campoInput = document.getElementById('inputSenha');
-  const erroSenha = document.getElementById('erroSenha');
+  const inputEl = document.getElementById('inputSenha');
+  const erroEl = document.getElementById('erroSenha');
   
-  // Trata espaços e maiúsculas acidentais
-  const senhaDigitada = campoInput.value.trim().toLowerCase();
+  const senhaInformada = inputEl.value.trim().toLowerCase();
 
-  if (senhaDigitada === SENHA_CORRETA) {
-    sessionStorage.setItem('autenticado_in65', 'true');
-    exibirSistema();
+  if (senhaInformada === SENHA_SISTEMA) {
+    sessionStorage.setItem('acesso_autorizado', 'true');
+    liberarTela();
   } else {
-    erroSenha.style.display = 'block';
-    campoInput.value = '';
-    campoInput.focus();
+    erroEl.style.display = 'block';
+    inputEl.value = '';
+    inputEl.focus();
   }
 }
 
-function exibirSistema() {
+function liberarTela() {
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('appContainer').style.display = 'block';
 }
 
 function bloquearAcesso() {
-  sessionStorage.removeItem('autenticado_in65');
+  sessionStorage.removeItem('acesso_autorizado');
   document.getElementById('appContainer').style.display = 'none';
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('inputSenha').value = '';
   document.getElementById('erroSenha').style.display = 'none';
 }
 
-// Verifica sessão salva
-window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('autenticado_in65') === 'true') {
-    exibirSistema();
+window.addEventListener('load', () => {
+  if (sessionStorage.getItem('acesso_autorizado') === 'true') {
+    liberarTela();
   }
 });
+
+/* --- Função de Máscara Moeda (Real em Tempo Real) --- */
+function formatarMoedaInput(input) {
+  let value = input.value.replace(/\D/g, ""); // Remove tudo que não for dígito
+  
+  if (value === "") {
+    input.value = "";
+    return;
+  }
+
+  // Converte para centavos e formata no padrão brasileiro
+  value = (parseInt(value, 10) / 100).toFixed(2);
+  
+  // Substitui ponto decimal por vírgula e aplica separador de milhar
+  value = value.replace(".", ",");
+  value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  
+  input.value = value;
+}
 
 /* --- Lógica da Calculadora --- */
 let contadorLinhas = 0;
@@ -59,7 +76,9 @@ function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', val
         <option value="Privada" ${tipo === 'Privada' ? 'selected' : ''}>Privada</option>
       </select>
     </td>
-    <td class="col-valor"><input type="text" class="input-valor" value="${valor}" placeholder="0,00"></td>
+    <td class="col-valor">
+      <input type="text" class="input-valor" value="${valor}" placeholder="0,00" oninput="formatarMoedaInput(this)">
+    </td>
     <td>
       <select class="select-expurgo" onchange="atualizarEstiloLinha(this)">
         <option value="VALIDO" ${statusExpurgo === 'VALIDO' ? 'selected' : ''}>Válido</option>
@@ -103,6 +122,7 @@ adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
+// Cálculo estatístico
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
@@ -112,7 +132,9 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
   linhas.forEach(tr => {
     let statusExpurgo = tr.querySelector('.select-expurgo').value;
-    let rawVal = tr.querySelector('.input-valor').value.replace('.', '').replace(',', '.');
+    
+    // Tratamento dos valores formatados (remove os pontos de milhar e troca vírgula por ponto)
+    let rawVal = tr.querySelector('.input-valor').value.replace(/\./g, '').replace(',', '.');
     let val = parseFloat(rawVal);
 
     if (!isNaN(val) && val > 0) {
@@ -160,7 +182,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
     dadosEstatisticos = `
       <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
-      <strong>Desvio Padrão:</strong> R$ ${desvioPadrao.toFixed(2).replace('.', ',')}<br>
+      <strong>Desvio Padrão:</strong> R$ ${desvioPadrao.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}<br>
       <strong>Coeficiente de Variação Final (CV):</strong> ${cvFinal.toFixed(2).replace('.', ',')}% - ${statusCv}
     `;
   }
@@ -174,15 +196,15 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     <div class="metodos-grid">
       <div class="metodo-card">
         <span>Média Simples</span>
-        <strong>R$ ${mediaFinal.toFixed(2).replace('.', ',')}</strong>
+        <strong>R$ ${mediaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
       </div>
       <div class="metodo-card">
         <span>Mediana</span>
-        <strong>R$ ${medianaFinal.toFixed(2).replace('.', ',')}</strong>
+        <strong>R$ ${medianaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
       </div>
       <div class="metodo-card">
         <span>Menor Preço</span>
-        <strong>R$ ${menorPrecoFinal.toFixed(2).replace('.', ',')}</strong>
+        <strong>R$ ${menorPrecoFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
       </div>
     </div>
 
