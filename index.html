@@ -19,11 +19,11 @@
         <thead>
           <tr>
             <th style="width: 5%; text-align: center;">Nº</th>
-            <th style="width: 28%;">Fornecedor</th>
-            <th style="width: 20%;">CNPJ</th>
-            <th style="width: 12%;">Tipo</th>
-            <th style="width: 15%;">Valor (R$)</th>
-            <th style="width: 130px;">Status / Expurgo</th>
+            <th style="width: 25%;">Fornecedor</th>
+            <th style="width: 18%;">CNPJ</th>
+            <th style="width: 10%;">Tipo</th>
+            <th style="width: 14%;">Valor (R$)</th>
+            <th style="width: 20%;">Status / Expurgo / Justificativa</th>
             <th style="width: 8%; text-align: center;">Ação</th>
           </tr>
         </thead>
@@ -39,7 +39,13 @@
               </select>
             </td>
             <td><input type="text" class="input-sim input-valor" value="0,00"></td>
-            <td><span class="status-badge-valido">Válido</span></td>
+            <td>
+              <select class="input-sim select-status">
+                <option value="valido" selected>Válido</option>
+                <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+                <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
+              </select>
+            </td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
           <tr>
@@ -53,7 +59,13 @@
               </select>
             </td>
             <td><input type="text" class="input-sim input-valor" value="0,00"></td>
-            <td><span class="status-badge-valido">Válido</span></td>
+            <td>
+              <select class="input-sim select-status">
+                <option value="valido" selected>Válido</option>
+                <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+                <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
+              </select>
+            </td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
           <tr>
@@ -67,7 +79,13 @@
               </select>
             </td>
             <td><input type="text" class="input-sim input-valor" value="0,00"></td>
-            <td><span class="status-badge-valido">Válido</span></td>
+            <td>
+              <select class="input-sim select-status">
+                <option value="valido" selected>Válido</option>
+                <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+                <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
+              </select>
+            </td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
         </tbody>
@@ -86,7 +104,7 @@
       </div>
 
       <div id="alertaAviso" class="alert-box alert-warning" style="display: none;">
-        ⚡ O sistema realizou o expurgo automático de outlier(s) para sanear o CV &le; 25%.
+        ⚡ O sistema registrou exclusões/expurgos conforme a análise técnica dos preços.
       </div>
 
       <div class="stats-summary" id="resumoContagem">
