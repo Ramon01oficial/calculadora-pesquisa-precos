@@ -275,3 +275,20 @@ tr.excluido-2 td.col-valor {
   font-size: 16px;
   color: #1d2d35;
 }
+
+
+/* Estilo para a caixa de justificativa do expurgo */
+.input-justificativa {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff8e1; /* Fundo suave para destacar que é um motivo/comentário */
+  color: #333;
+}
+
+.input-justificativa:focus {
+  border-color: #1a73e8;
+  outline: none;
+}
