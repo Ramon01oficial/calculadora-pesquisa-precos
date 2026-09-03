@@ -41,20 +41,17 @@ window.addEventListener('load', () => {
 /* --- Função de Máscara Moeda (Real em Tempo Real) --- */
 function formatarMoedaInput(input) {
   let value = input.value.replace(/\D/g, "");
-  
   if (value === "") {
     input.value = "";
     return;
   }
-
   value = (parseInt(value, 10) / 100).toFixed(2);
   value = value.replace(".", ",");
   value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  
   input.value = value;
 }
 
-/* --- Função de Máscara CNPJ (00.000.000/0000-00) --- */
+/* --- Função de Máscara CNPJ --- */
 function formatarCNPJInput(input) {
   let v = input.value.replace(/\D/g, "");
   if (v.length > 14) v = v.slice(0, 14);
@@ -70,7 +67,7 @@ function formatarCNPJInput(input) {
 /* --- Lógica da Calculadora --- */
 let contadorLinhas = 0;
 
-function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO') {
+function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO', justificativa = '') {
   contadorLinhas++;
   const tbody = document.getElementById('corpoTabela');
   const tr = document.createElement('tr');
@@ -97,6 +94,7 @@ function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', val
         <option value="EXCLUIDO_1" ${statusExpurgo === 'EXCLUIDO_1' ? 'selected' : ''}>Excluído 1ª</option>
         <option value="EXCLUIDO_2" ${statusExpurgo === 'EXCLUIDO_2' ? 'selected' : ''}>Excluído 2ª</option>
       </select>
+      <input type="text" class="input-justificativa" value="${justificativa}" placeholder="Motivo do expurgo..." style="display:none; margin-top:4px; font-size:11px;">
     </td>
     <td style="text-align:center;">
       <button type="button" class="btn-remover" onclick="removerLinha(this)">Excluir</button>
@@ -111,10 +109,20 @@ function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', val
 function atualizarEstiloLinha(selectElement) {
   const tr = selectElement.closest('tr');
   const status = selectElement.value;
+  const inputJust = tr.querySelector('.input-justificativa');
   
   tr.classList.remove('excluido-1', 'excluido-2');
-  if (status === 'EXCLUIDO_1') tr.classList.add('excluido-1');
-  else if (status === 'EXCLUIDO_2') tr.classList.add('excluido-2');
+  
+  if (status === 'EXCLUIDO_1') {
+    tr.classList.add('excluido-1');
+    inputJust.style.display = 'block';
+  } else if (status === 'EXCLUIDO_2') {
+    tr.classList.add('excluido-2');
+    inputJust.style.display = 'block';
+  } else {
+    inputJust.style.display = 'none';
+    inputJust.value = '';
+  }
 }
 
 function removerLinha(btn) {
@@ -134,7 +142,7 @@ adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
-// Funções auxiliares estatísticas
+// Funções estatísticas
 function calcularMedia(arr) {
   return arr.reduce((acc, v) => acc + v, 0) / arr.length;
 }
@@ -147,14 +155,13 @@ function calcularCV(arr) {
   return (desvioPadrao / media) * 100;
 }
 
-// Cálculo e expurgo automático totalmente autônomo (IN 65/2021)
+// Cálculo e Auditoria da Pesquisa (IN 65/2021 & Lei 14.133/2021)
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
 
   let itensValidos = [];
 
-  // 1. Coleta dados das linhas válidas e limpa expurgos de 2ª análise antigos
   linhas.forEach(tr => {
     let selectExpurgo = tr.querySelector('.select-expurgo');
     let rawVal = tr.querySelector('.input-valor').value.replace(/\./g, '').replace(',', '.');
@@ -179,14 +186,13 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     return;
   }
 
-  // 2. Loop de saneamento de Outliers sem interrupção antecipada
+  // Loop de saneamento automático (Outliers)
   let valores = itensValidos.map(i => i.valor);
   let cvAtual = calcularCV(valores);
   let houveExpurgoAutomatico = false;
 
-  while (cvAtual > 25 && itensValidos.length > 2) {
+  while (cvAtual > 25 && itensValidos.length > 1) {
     let mediaTemp = calcularMedia(itensValidos.map(i => i.valor));
-    
     let indexOutlier = 0;
     let maiorDistancia = -1;
 
@@ -200,6 +206,12 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
     let itemRemovido = itensValidos.splice(indexOutlier, 1)[0];
     itemRemovido.selectExpurgo.value = 'EXCLUIDO_2';
+    
+    let inputJust = itemRemovido.tr.querySelector('.input-justificativa');
+    if (!inputJust.value) {
+      inputJust.value = 'Expurgado automaticamente por divergência estatística (Outlier)';
+    }
+    
     atualizarEstiloLinha(itemRemovido.selectExpurgo);
     houveExpurgoAutomatico = true;
 
@@ -207,7 +219,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     cvAtual = calcularCV(valores);
   }
 
-  // 3. Processa resultados finais
+  // Processamento Estatístico
   let qtdValidos = itensValidos.length;
   let qtdDesconsiderados = Array.from(document.querySelectorAll('.select-expurgo')).filter(s => s.value !== 'VALIDO').length;
 
@@ -226,6 +238,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
   let desvioPadrao = 0;
   let cvFinal = 0;
   let dadosEstatisticos = '';
+  let recomendacaoMetodo = '';
 
   if (qtdValidos >= 2) {
     let variancia = valores.reduce((acc, v) => acc + Math.pow(v - mediaFinal, 2), 0) / (qtdValidos - 1);
@@ -234,24 +247,49 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
 
     let statusCv = cvFinal <= 25 
       ? "<span style='color:green; font-weight:bold;'>Homogêneo (<= 25%)</span>" 
-      : "<span style='color:red; font-weight:bold;'>Heterogêneo (> 25%) - Amostra requer atenção</span>";
+      : "<span style='color:red; font-weight:bold;'>Heterogêneo (> 25%)</span>";
+
+    if (cvFinal <= 25) {
+      recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Recomenda-se utilizar a <strong>MÉDIA SIMPLES (R$ ${mediaFinal.toFixed(2).replace('.', ',')})</strong> como valor estimado.`;
+    } else {
+      recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Amostra com dispersão. Recomenda-se utilizar a <strong>MEDIANA (R$ ${medianaFinal.toFixed(2).replace('.', ',')})</strong> para mitigar distorções de preços.`;
+    }
 
     dadosEstatisticos = `
       <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
       <strong>Desvio Padrão Final:</strong> R$ ${desvioPadrao.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}<br>
       <strong>Coeficiente de Variação Final (CV):</strong> ${cvFinal.toFixed(2).replace('.', ',')}% - ${statusCv}
     `;
+  } else {
+    recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Com 1 valor válido (mercado exclusivo/restrito), adote o <strong>MENOR PREÇO / VALOR ÚNICO (R$ ${menorPrecoFinal.toFixed(2).replace('.', ',')})</strong> com a devida justificativa técnica de inviabilidade de ampliação de fornecedores.`;
+    dadosEstatisticos = `
+      <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
+      <span style="color:#1a73e8; font-weight:bold;">ℹ️ Amostra de item específico / mercado restrito.</span>
+    `;
+  }
+
+  // Nota Orientativa para Amostra Restrita (Art. 6º, § 4º da IN 65/2021)
+  let alertaAmostra = '';
+  if (qtdValidos < 3) {
+    alertaAmostra = `
+      <div style="margin-bottom:12px; padding:10px; background:#e8f0fe; border-left:4px solid #1a73e8; color:#174ea6; font-size:12px; line-height:1.4;">
+        <strong>📌 ORIENTAÇÃO PARA A INSTRUÇÃO PROCESSUAL (Art. 6º, § 4º, IN SEGES/ME 65/2021):</strong><br>
+        A pesquisa restou consolidada com <strong>${qtdValidos} preço(s) válido(s)</strong>.<br>
+        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado que impediu a obtenção do número mínimo de 3 cotações.</em>
+      </div>
+    `;
   }
 
   let avisoExpurgo = houveExpurgoAutomatico 
-    ? `<div style="margin-bottom:10px; padding:8px; background:#e8f0fe; border-left:4px solid #1a73e8; color:#1a73e8; font-weight:bold;">
-        ℹ️ O sistema realizou o expurgo automático dos valores discrepantes (Outliers em azul) para buscar o CV <= 25%.
+    ? `<div style="margin-bottom:10px; padding:8px; background:#fef7e0; border-left:4px solid #f2994a; color:#b76e00; font-weight:bold; font-size:12px;">
+        ⚡ O sistema realizou o expurgo automático de outlier(s) para sanear o CV <= 25%.
        </div>`
     : '';
 
-  divResultado.className = (qtdValidos < 3 || cvFinal > 25) ? 'result-box alerta' : 'result-box sucesso';
+  divResultado.className = 'result-box sucesso';
 
   divResultado.innerHTML = `
+    ${alertaAmostra}
     ${avisoExpurgo}
     <strong>Preços Válidos Utilizados:</strong> ${qtdValidos} item(ns)<br>
     <strong>Preços Desconsiderados (Expurgados):</strong> ${qtdDesconsiderados} item(ns)<br>
@@ -272,6 +310,9 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     </div>
 
     ${dadosEstatisticos}
+    <div style="margin-top:10px; padding:8px; background:#f1f3f4; border-radius:4px; font-size:12px; color:#3c4043;">
+      ${recomendacaoMetodo}
+    </div>
   `;
   
   divResultado.style.display = 'block';
