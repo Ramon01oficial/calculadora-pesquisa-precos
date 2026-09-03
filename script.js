@@ -1,7 +1,10 @@
-/* --- Máscaras de Entrada --- */
+/* --- Máscaras e Formatação de Entrada --- */
 function formatarMoedaInput(input) {
   let value = input.value.replace(/\D/g, "");
-  if (value === "") { input.value = ""; return; }
+  if (value === "") { 
+    input.value = ""; 
+    return; 
+  }
   value = (parseInt(value, 10) / 100).toFixed(2);
   value = value.replace(".", ",");
   value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -18,7 +21,7 @@ function formatarCNPJInput(input) {
   input.value = v;
 }
 
-/* --- Manipulação da Tabela --- */
+/* --- Manipulação Dinâmica da Tabela --- */
 let contadorLinhas = 0;
 
 function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO', justificativa = '') {
@@ -92,11 +95,12 @@ function renumerarTabela() {
   });
 }
 
+// Inicializa com 3 linhas padrão
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
-// Cálculos estatísticos
+/* --- Funções Estatísticas --- */
 function calcularMedia(arr) {
   return arr.reduce((acc, v) => acc + v, 0) / arr.length;
 }
@@ -109,7 +113,7 @@ function calcularCV(arr) {
   return (desvioPadrao / media) * 100;
 }
 
-// Botão Calcular
+/* --- Botão Calcular e Validar --- */
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
@@ -123,6 +127,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     let val = parseFloat(rawVal);
 
     if (!isNaN(val) && val > 0) {
+      // Se estava marcado como excluído 2ª de um cálculo anterior, reseta para válido antes de reavaliar
       if (selectExpurgo.value === 'EXCLUIDO_2') {
         selectExpurgo.value = 'VALIDO';
         atualizarEstiloLinha(selectExpurgo);
@@ -138,11 +143,11 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     divResultado.className = 'result-box erro';
     divResultado.innerHTML = '<strong>Erro:</strong> Informe pelo menos um valor válido para calcular.';
     divResultado.style.display = 'block';
-    btnPdf.style.display = 'none';
+    if (btnPdf) btnPdf.style.display = 'none';
     return;
   }
 
-  // Outlier auto-expurgo
+  // Outlier Auto-Expurgo para saneamento de amostras (CV > 25%)
   let valores = itensValidos.map(i => i.valor);
   let cvAtual = calcularCV(valores);
   let houveExpurgoAutomatico = false;
@@ -175,7 +180,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     cvAtual = calcularCV(valores);
   }
 
-  // Resultados Finais
+  // Apuração dos Resultados Finais
   let qtdValidos = itensValidos.length;
   let qtdDesconsiderados = Array.from(document.querySelectorAll('.select-expurgo')).filter(s => s.value !== 'VALIDO').length;
 
@@ -230,7 +235,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
       <div style="margin-bottom:12px; padding:10px; background:#e8f0fe; border-left:4px solid #1a73e8; color:#174ea6; font-size:12px; line-height:1.4;">
         <strong>📌 ORIENTAÇÃO PARA A INSTRUÇÃO PROCESSUAL (Art. 6º, § 4º, IN SEGES/ME 65/2021):</strong><br>
         A pesquisa restou consolidada com <strong>${qtdValidos} preço(s) válido(s)</strong>.<br>
-        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado.</em>
+        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado que impediu a obtenção do número mínimo de 3 cotações.</em>
       </div>
     `;
   }
@@ -251,15 +256,15 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     
     <div class="metodos-grid">
       <div class="metodo-card">
-        <span>Média Simples</span>
+        <span>MÉDIA SIMPLES</span>
         <strong>R$ ${mediaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
       </div>
       <div class="metodo-card">
-        <span>Mediana</span>
+        <span>MEDIANA</span>
         <strong>R$ ${medianaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
       </div>
       <div class="metodo-card">
-        <span>Menor Preço</span>
+        <span>MENOR PREÇO</span>
         <strong>R$ ${menorPrecoFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
       </div>
     </div>
@@ -271,30 +276,24 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
   `;
   
   divResultado.style.display = 'block';
-  btnPdf.style.display = 'inline-block';
+  if (btnPdf) btnPdf.style.display = 'inline-block';
 });
 
-/* --- Exportação para PDF --- */
-function gerarPDF() {
-  const elemento = document.getElementById('conteudoParaPDF');
-  const cabecalho = document.getElementById('cabecalhoPDF');
-  const colunasAcao = document.querySelectorAll('.col-acao');
-
-  cabecalho.style.display = 'block';
-  colunasAcao.forEach(el => el.style.display = 'none');
-
-  const opcoes = {
-    margin:       10,
-    filename:     `Parecer_Pesquisa_Precos_${new Date().toISOString().slice(0,10)}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  html2pdf().set(opcoes).from(elemento).save().then(() => {
-    cabecalho.style.display = 'none';
-    colunasAcao.forEach(el => el.style.display = '');
-  });
-}
-
+/* --- Eventos de Botões --- */
 document.getElementById('btnAdicionar').addEventListener('click', () => adicionarLinhaTabela());
+
+/* --- Função para Exportação em PDF (Impressão Nativa) --- */
+function gerarPDF() {
+  const cabecalho = document.getElementById('cabecalhoPDF');
+  if (cabecalho) {
+    cabecalho.style.display = 'block';
+  }
+  
+  window.print();
+
+  setTimeout(() => {
+    if (cabecalho) {
+      cabecalho.style.display = 'none';
+    }
+  }, 1000);
+}
