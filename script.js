@@ -54,6 +54,19 @@ function formatarMoedaInput(input) {
   input.value = value;
 }
 
+/* --- Função de Máscara CNPJ (00.000.000/0000-00) --- */
+function formatarCNPJInput(input) {
+  let v = input.value.replace(/\D/g, "");
+  if (v.length > 14) v = v.slice(0, 14);
+
+  v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+  v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+  v = v.replace(/(\d{4})(\d)/, "$1-$2");
+
+  input.value = v;
+}
+
 /* --- Lógica da Calculadora --- */
 let contadorLinhas = 0;
 
@@ -66,7 +79,9 @@ function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', val
   tr.innerHTML = `
     <td class="col-index" style="text-align:center;"></td>
     <td><input type="text" class="input-fornecedor" value="${fornecedor}" placeholder="Nome do fornecedor"></td>
-    <td><input type="text" class="input-cnpj" value="${cnpj}" placeholder="00.000.000/0000-00"></td>
+    <td>
+      <input type="text" class="input-cnpj" value="${cnpj}" placeholder="00.000.000/0000-00" maxlength="18" oninput="formatarCNPJInput(this)">
+    </td>
     <td>
       <select class="select-tipo">
         <option value="Pública" ${tipo === 'Pública' ? 'selected' : ''}>Pública</option>
@@ -146,7 +161,6 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     let val = parseFloat(rawVal);
 
     if (!isNaN(val) && val > 0) {
-      // Zera expurgos de 2ª análise anteriores para recalcular limpo
       if (selectExpurgo.value === 'EXCLUIDO_2') {
         selectExpurgo.value = 'VALIDO';
         atualizarEstiloLinha(selectExpurgo);
@@ -165,16 +179,14 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     return;
   }
 
-  // 2. Loop de saneamento de Outliers (Ajuste Técnico / 2ª Análise)
+  // 2. Loop de saneamento de Outliers
   let valores = itensValidos.map(i => i.valor);
   let cvAtual = calcularCV(valores);
   let houveExpurgoAutomatico = false;
 
-  // Enquanto o CV for maior que 25% e houver pelo menos 3 itens, remove o valor mais distante
   while (cvAtual > 25 && itensValidos.length >= 3) {
     let mediaTemp = calcularMedia(itensValidos.map(i => i.valor));
     
-    // Identifica o item mais distante da média (outlier)
     let indexOutlier = 0;
     let maiorDistancia = -1;
 
@@ -186,20 +198,18 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
       }
     });
 
-    // Aplica o expurgo no elemento visual
     let itemRemovido = itensValidos.splice(indexOutlier, 1)[0];
     itemRemovido.selectExpurgo.value = 'EXCLUIDO_2';
     atualizarEstiloLinha(itemRemovido.selectExpurgo);
     houveExpurgoAutomatico = true;
 
-    // Recalcula CV com a nova amostra
     valores = itensValidos.map(i => i.valor);
     cvAtual = calcularCV(valores);
   }
 
-  // 3. Processa resultados finais com os itens válidos restantes
+  // 3. Processa resultados finais
   let qtdValidos = itensValidos.length;
-  let qtdDesconsiderados = document.querySelectorAll('.select-expurgo:not([value="VALIDO"])').length;
+  let qtdDesconsiderados = Array.from(document.querySelectorAll('.select-expurgo')).filter(s => s.value !== 'VALIDO').length;
 
   valores.sort((a, b) => a - b);
 
