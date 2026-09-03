@@ -1,294 +1,63 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f6f9;
-  padding: 15px;
-  margin: 0;
+/* Restauração dos quadrados de legenda */
+.legendas {
+  margin: 15px 0;
+  font-size: 13px;
 }
 
-/* --- Tela de Login / Overlay --- */
-.login-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(29, 45, 53, 0.95);
+.legendas p {
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 9999;
+  gap: 8px;
+  margin: 4px 0;
 }
 
-.login-card {
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  text-align: center;
-}
-
-.login-icon {
-  font-size: 36px;
-  margin-bottom: 10px;
-}
-
-.login-card h3 {
-  margin: 0 0 8px 0;
-  color: #1d2d35;
-}
-
-.login-card p {
-  font-size: 13px;
-  color: #6c757d;
-  margin-bottom: 20px;
-  line-height: 1.4;
-}
-
-.form-group-login {
-  margin-bottom: 15px;
-}
-
-.form-group-login input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.btn-login {
-  width: 100%;
-  padding: 10px;
-  background-color: #0056b3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.btn-login:hover {
-  background-color: #004085;
-}
-
-.erro-senha {
-  margin-top: 15px;
-  color: #d93025;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-/* --- Aplicação Principal --- */
-.container {
-  max-width: 900px;
-  margin: 20px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-h2 {
-  margin: 0 0 2px 0;
-  color: #1d2d35;
-}
-
-.subtit {
-  display: block;
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: bold;
-}
-
-.btn-sair {
-  background: transparent;
-  border: 1px solid #dc3545;
-  color: #dc3545;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.btn-sair:hover {
-  background: #dc3545;
-  color: white;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-input, select {
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  width: 100%;
-  font-size: 13px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-  font-size: 13px;
-}
-
-th, td {
-  border: 1px solid #222;
-  padding: 6px 8px;
-  text-align: left;
-  vertical-align: middle;
-}
-
-th {
-  background-color: #f8f9fa;
-  font-weight: bold;
-}
-
-/* Destaque Visual dos Expurgos */
-tr.excluido-1 td {
-  color: #d93025;
-  font-weight: bold;
-}
-
-tr.excluido-1 td.col-valor {
-  background-color: #d93025;
-  color: #ffffff !important;
-}
-
-tr.excluido-2 td {
-  color: #1a73e8;
-  font-weight: bold;
-}
-
-tr.excluido-2 td.col-valor {
-  background-color: #1a73e8;
-  color: #ffffff !important;
-}
-
-/* Legendas e Botões */
 .legenda-box {
-  font-size: 12px;
-  margin-bottom: 15px;
-  line-height: 1.6;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  border-radius: 2px;
 }
 
-.legenda-red { color: #d93025; font-weight: bold; }
-.legenda-blue { color: #1a73e8; font-weight: bold; }
+.leg-1 {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
 
-.btn-remover {
-  background-color: #dc3545;
-  color: white;
+.leg-2 {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+}
+
+/* Botão do PDF */
+.btn-pdf {
+  background-color: #34a853;
+  color: #ffffff;
   border: none;
-  padding: 5px 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 11px;
+  margin-left: 8px;
 }
 
-.btn-remover:hover { background-color: #bd2130; }
-
-.btn-secundario {
-  background: #6c757d;
-  color: #fff;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 4px;
+.btn-pdf:hover {
+  background-color: #2d8e47;
 }
 
-#btnCalcular {
-  background-color: #0056b3;
-  color: white;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
-  padding: 12px;
-  font-size: 15px;
-  border-radius: 4px;
-}
-
-#btnCalcular:hover { background-color: #004085; }
-
-/* Painel de Resultados */
-.result-box {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 5px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.sucesso { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.alerta { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-.erro { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
-.metodos-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 12px 0;
-}
-
-.metodo-card {
-  background: rgba(255,255,255,0.85);
-  border: 1px solid rgba(0,0,0,0.1);
-  padding: 12px;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.metodo-card span {
-  display: block;
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #555;
-}
-
-.metodo-card strong {
-  font-size: 16px;
-  color: #1d2d35;
-}
-
-
-/* Estilo para a caixa de justificativa do expurgo */
-.input-justificativa {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff8e1; /* Fundo suave para destacar que é um motivo/comentário */
-  color: #333;
-}
-
-.input-justificativa:focus {
-  border-color: #1a73e8;
-  outline: none;
+/* Regras específicas para impressão em PDF */
+@media print {
+  body {
+    background-color: #fff;
+  }
+  .container {
+    box-shadow: none;
+    padding: 0;
+  }
+  .botoes-container, .col-acao {
+    display: none !important;
+  }
+  #cabecalhoPDF {
+    display: block !important;
+  }
 }
