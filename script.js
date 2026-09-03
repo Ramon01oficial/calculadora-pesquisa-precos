@@ -1,20 +1,53 @@
-// Trava de Acesso Simples por Senha
-(function verificarAcesso() {
-  const SENHA_CORRETA = "ramon123"; // Escolha a senha aqui
-  let senhaInformada = prompt("Digite a senha de acesso à Calculadora de Preços:");
+// Hash SHA-256 da senha 'auditoria2026'
+const HASH_SENHA_CORRETA = "402eb06ffea49d53b27dce7e74868037dfc888e0b6dfa9a5a7b693df3fbcfef4";
 
-  if (senhaInformada !== SENHA_CORRETA) {
-    alert("Acesso negado. Senha incorreta.");
-    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>Acesso não autorizado.</h2>";
+// Função para gerar Hash SHA-256 no navegador
+async function gerarSHA256(texto) {
+  const msgUint8 = new TextEncoder().encode(texto);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Validação de Acesso
+async function validarAcesso(event) {
+  event.preventDefault();
+  const inputSenha = document.getElementById('inputSenha').value;
+  const erroSenha = document.getElementById('erroSenha');
+
+  const hashDigitado = await gerarSHA256(inputSenha);
+
+  if (hashDigitado === HASH_SENHA_CORRETA) {
+    sessionStorage.setItem('autenticado_in65', 'true');
+    exibirSistema();
+  } else {
+    erroSenha.style.display = 'block';
+    document.getElementById('inputSenha').value = '';
+    document.getElementById('inputSenha').focus();
   }
-})();
+}
 
-let contadorLinhas = 0;
+function exibirSistema() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'block';
+}
 
-function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO') {
+function bloquearAcesso() {
+  sessionStorage.removeItem('autenticado_in65');
+  document.getElementById('appContainer').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('inputSenha').value = '';
+  document.getElementById('erroSenha').style.display = 'none';
+}
 
+// Verificar se já autenticou na sessão atual
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('autenticado_in65') === 'true') {
+    exibirSistema();
+  }
+});
 
-
+/* --- Lógica de Negócio da Calculadora --- */
 let contadorLinhas = 0;
 
 function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO') {
@@ -73,12 +106,12 @@ function renumerarTabela() {
   });
 }
 
-// Inicializa com 3 linhas limpas
+// Inicializa com 3 linhas padrão
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
-// Listener do Botão Calcular
+// Cálculo estatístico
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
@@ -109,23 +142,18 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     return;
   }
 
-  // Ordenação para cálculo de mediana e menor preço
   valoresValidos.sort((a, b) => a - b);
 
-  // 1. Média Simples
   let soma = valoresValidos.reduce((acc, v) => acc + v, 0);
   let mediaFinal = soma / qtdValidos;
 
-  // 2. Mediana
   let meio = Math.floor(qtdValidos / 2);
   let medianaFinal = (qtdValidos % 2 !== 0) 
     ? valoresValidos[meio] 
     : (valoresValidos[meio - 1] + valoresValidos[meio]) / 2;
 
-  // 3. Menor Preço
   let menorPrecoFinal = valoresValidos[0];
 
-  // Métricas Estatísticas
   let desvioPadrao = 0;
   let cvFinal = 0;
   let dadosEstatisticos = '';
