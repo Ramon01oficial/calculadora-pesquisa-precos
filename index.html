@@ -14,16 +14,23 @@
       <p>Conforme IN SEGES/ME Nº 65/2021 e Lei Nº 14.133/2021</p>
     </div>
 
+    <!-- Campo indicando a necessidade de justificar nos autos a obtenção de apenas 2 preços -->
+    <div id="painelJustificativaDoisItens" class="alert-box alert-warning" style="display: none; margin-bottom: 16px;">
+      <strong>⚠️ ATENÇÃO - UTILIZAÇÃO DE APENAS 2 PREÇOS:</strong><br>
+      <span style="font-size: 8.5pt;">A norma estabelece preferencialmente 3 preços. Como foram obtidos apenas 2 preços válidos, <strong>deverá ser devidamente justificado nos autos</strong> o motivo de se contar com apenas dois referenciais (art. 5º, § 2º da IN SEGES/ME nº 65/2021):</span>
+      <input type="text" id="inputJustificativaDoisItens" class="input-sim" placeholder="Registre aqui a justificativa para constar nos autos..." style="margin-top: 6px; background-color: #fff;">
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
           <tr>
             <th style="width: 5%; text-align: center;">Nº</th>
-            <th style="width: 22%;">Fornecedor</th>
-            <th style="width: 16%;">CNPJ</th>
-            <th style="width: 10%;">Tipo</th>
-            <th style="width: 12%;">Valor (R$)</th>
-            <th style="width: 27%;">Status / Expurgo / Justificativa</th>
+            <th style="width: 25%;">Fornecedor</th>
+            <th style="width: 18%;">CNPJ</th>
+            <th style="width: 12%;">Tipo</th>
+            <th style="width: 15%;">Valor (R$)</th>
+            <th style="width: 17%;">Status / Expurgo</th>
             <th style="width: 8%; text-align: center;">Ação</th>
           </tr>
         </thead>
@@ -42,10 +49,9 @@
             <td>
               <select class="input-sim select-status">
                 <option value="valido" selected>Válido</option>
-                <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+                <option value="excluido_1">Excluído (Inex./Excessivo)</option>
                 <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
               </select>
-              <input type="text" class="input-sim input-justificativa" placeholder="Descreva a justificativa do expurgo..." style="display: none; margin-top: 4px;">
             </td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
@@ -63,10 +69,29 @@
             <td>
               <select class="input-sim select-status">
                 <option value="valido" selected>Válido</option>
-                <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+                <option value="excluido_1">Excluído (Inex./Excessivo)</option>
                 <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
               </select>
-              <input type="text" class="input-sim input-justificativa" placeholder="Descreva a justificativa do expurgo..." style="display: none; margin-top: 4px;">
+            </td>
+            <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-weight: 600;">3</td>
+            <td><input type="text" class="input-sim" placeholder="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim input-cnpj" placeholder="00.000.000/0000-00" maxlength="18"></td>
+            <td>
+              <select class="input-sim">
+                <option value="Pública" selected>Pública</option>
+                <option value="Privada">Privada</option>
+              </select>
+            </td>
+            <td><input type="text" class="input-sim input-valor" value="0,00"></td>
+            <td>
+              <select class="input-sim select-status">
+                <option value="valido" selected>Válido</option>
+                <option value="excluido_1">Excluído (Inex./Excessivo)</option>
+                <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
+              </select>
             </td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
