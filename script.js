@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let validosAtuais = itens.filter(i => i.statusManual === "valido");
     let expurgadosCount = itens.length - validosAtuais.length;
 
-    // Regra de validação para itens específicos (mínimo de 2 preços válidos)
+    // Regra específica ajustada: Permite exatamente 2 preços válidos
     if (validosAtuais.length < 2) {
       alert("Atenção: A pesquisa de preços requer no mínimo 2 preços válidos (conforme regra de itens específicos/justificados). Ajuste o status ou adicione mais itens.");
       return;
