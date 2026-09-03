@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnCalcular = document.getElementById("btnCalcular");
   const painelResultado = document.getElementById("painelResultado");
 
-  // Formatador de CNPJ (00.000.000/0000-00)
   function formatarCNPJ(v) {
     v = v.replace(/\D/g, "");
     if (v.length > 14) v = v.substring(0, 14);
@@ -15,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return v;
   }
 
-  // Formatador de Moeda (R$ 0,00)
   function formatarMoeda(v) {
     v = v.replace(/\D/g, "");
     if (v === "") return "0,00";
@@ -25,19 +23,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return valor;
   }
 
-  // Converter Texto Moeda em Número Float
   function moedaParaFloat(v) {
     if (!v) return 0;
     let limpo = v.replace(/\./g, "").replace(",", ".");
     return parseFloat(limpo) || 0;
   }
 
-  // Formatador Float para Moeda BRL
   function floatParaMoeda(v) {
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  // Eventos de entrada de dados com máscara
   corpoTabela.addEventListener("input", (e) => {
     if (e.target.classList.contains("input-cnpj")) {
       e.target.value = formatarCNPJ(e.target.value);
@@ -55,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, true);
 
-  // Ação de Exclusão de Linha
   corpoTabela.addEventListener("click", (e) => {
     if (e.target.classList.contains("btn-del")) {
       e.target.closest("tr").remove();
@@ -70,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Ação de Adicionar Linha
   btnAdicionar.addEventListener("click", () => {
     const total = corpoTabela.querySelectorAll("tr").length + 1;
     const tr = document.createElement("tr");
@@ -86,70 +79,114 @@ document.addEventListener("DOMContentLoaded", () => {
         </select>
       </td>
       <td><input type="text" class="input-sim input-valor" value="0,00"></td>
-      <td><span class="status-badge-valido">Válido</span></td>
+      <td>
+        <select class="input-sim select-status">
+          <option value="valido" selected>Válido</option>
+          <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+          <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
+        </select>
+      </td>
       <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
     `;
 
     corpoTabela.appendChild(tr);
   });
 
-  // Ação de Cálculo e Estatística
   btnCalcular.addEventListener("click", () => {
-    const inputsValores = corpoTabela.querySelectorAll(".input-valor");
-    let valores = [];
+    const linhas = corpoTabela.querySelectorAll("tr");
+    let itens = [];
 
-    inputsValores.forEach(input => {
-      let num = moedaParaFloat(input.value);
-      if (num > 0) valores.push(num);
+    linhas.forEach((tr, idx) => {
+      const inputValor = tr.querySelector(".input-valor");
+      const selectStatus = tr.querySelector(".select-status");
+      let val = moedaParaFloat(inputValor.value);
+
+      if (val > 0) {
+        itens.push({
+          index: idx,
+          tr: tr,
+          selectStatus: selectStatus,
+          valor: val,
+          statusManual: selectStatus.value
+        });
+      }
     });
 
-    if (valores.length === 0) {
+    if (itens.length === 0) {
       alert("Por favor, informe ao menos um valor válido maior que zero.");
       return;
     }
 
-    // Cálculos Básicos
-    let soma = valores.reduce((acc, curr) => acc + curr, 0);
-    let media = soma / valores.length;
-    let menor = Math.min(...valores);
+    // Filtrar itens considerados válidos com base na seleção do usuário na tabela
+    let validosAtuais = itens.filter(i => i.statusManual === "valido");
+    let expurgadosCount = itens.length - validosAtuais.length;
 
-    // Mediana
-    let ordenados = [...valores].sort((a, b) => a - b);
-    let mediana = 0;
-    let meio = Math.floor(ordenados.length / 2);
-    if (ordenados.length % 2 === 0) {
-      mediana = (ordenados[meio - 1] + ordenados[meio]) / 2;
-    } else {
-      mediana = ordenados[meio];
+    // Regra especial: Itens específicos aceitam mínimo de 2 preços válidos
+    if (validosAtuais.length < 2) {
+      alert("Atenção: A pesquisa de preços requer no mínimo 2 preços válidos (conforme regra de itens específicos/justificados). Ajuste o status ou adicione mais itens.");
+      return;
     }
 
-    // Desvio Padrão Amostral e CV
-    let desvioPadrao = 0;
-    if (valores.length > 1) {
-      let variancia = valores.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (valores.length - 1);
-      desvioPadrao = Math.sqrt(variancia);
+    function calcularEstatisticas(listaValores) {
+      let n = listaValores.length;
+      if (n === 0) return { media: 0, mediana: 0, menor: 0, desvio: 0, cv: 0 };
+      let soma = listaValores.reduce((a, b) => a + b, 0);
+      let media = soma / n;
+      let menor = Math.min(...listaValores);
+
+      let ordenados = [...listaValores].sort((a, b) => a - b);
+      let mediana = 0;
+      let meio = Math.floor(n / 2);
+      if (n % 2 === 0) {
+        mediana = (ordenados[meio - 1] + ordenados[meio]) / 2;
+      } else {
+        mediana = ordenados[meio];
+      }
+
+      let desvio = 0;
+      if (n > 1) {
+        let variancia = listaValores.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (n - 1);
+        desvio = Math.sqrt(variancia);
+      }
+      let cv = media > 0 ? (desvio / media) * 100 : 0;
+      return { media, mediana, menor, desvio, cv };
     }
-    let cv = media > 0 ? (desvioPadrao / media) * 100 : 0;
 
-    // Atualização do DOM
-    document.getElementById("qtdValidos").textContent = valores.length;
-    document.getElementById("qtdExpurgados").textContent = "0";
+    let valoresValidos = validosAtuais.map(i => i.valor);
+    let estat = calcularEstatisticas(valoresValidos);
 
-    document.getElementById("valMedia").textContent = floatParaMoeda(media);
-    document.getElementById("valMediana").textContent = floatParaMoeda(mediana);
-    document.getElementById("valMenor").textContent = floatParaMoeda(menor);
+    // Atualização dos elementos no DOM
+    document.getElementById("qtdValidos").textContent = validosAtuais.length;
+    document.getElementById("qtdExpurgados").textContent = expurgadosCount;
 
-    document.getElementById("valDesvio").textContent = floatParaMoeda(desvioPadrao);
-    document.getElementById("valCV").textContent = cv.toFixed(2) + "%";
+    document.getElementById("valMedia").textContent = floatParaMoeda(estat.media);
+    document.getElementById("valMediana").textContent = floatParaMoeda(estat.mediana);
+    document.getElementById("valMenor").textContent = floatParaMoeda(estat.menor);
+
+    document.getElementById("valDesvio").textContent = floatParaMoeda(estat.desvio);
+    document.getElementById("valCV").textContent = estat.cv.toFixed(2) + "%";
 
     let badgeCV = document.getElementById("badgeCV");
-    if (cv <= 25) {
-      badgeCV.textContent = "Homogêneo (≤ 25%)";
+    let alertaAviso = document.getElementById("alertaAviso");
+    let textoInfo = document.getElementById("textoInfo");
+
+    if (estat.cv <= 25) {
+      badgeCV.textContent = `Homogêneo (≤ 25%)`;
       badgeCV.className = "badge-success";
+      badgeCV.style.color = "#16a34a";
     } else {
-      badgeCV.textContent = "Heterogêneo (> 25%)";
+      badgeCV.textContent = `Heterogêneo (> 25%)`;
+      badgeCV.className = "";
       badgeCV.style.color = "#dc2626";
       badgeCV.style.fontWeight = "700";
+    }
+
+    if (expurgadosCount > 0) {
+      alertaAviso.style.display = "block";
+      textoInfo.textContent = `A pesquisa foi consolidada com ${validosAtuais.length} preços válidos, restando ${expurgadosCount} item(ns) desconsiderado(s) mediante justificativa formalizada.`;
+    } else {
+      alertaAviso.style.display = "none";
+      textoInfo.textContent = "A pesquisa restou consolidada com os preços informados, atendendo aos parâmetros de homogeneidade.";
     }
 
     painelResultado.style.display = "block";
