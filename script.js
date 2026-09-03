@@ -1,70 +1,24 @@
-// Configuração da senha
-const SENHA_SISTEMA = "auditoria2026";
-
-function validarAcesso(event) {
-  if (event) event.preventDefault();
-  
-  const inputEl = document.getElementById('inputSenha');
-  const erroEl = document.getElementById('erroSenha');
-  
-  const senhaInformada = inputEl.value.trim().toLowerCase();
-
-  if (senhaInformada === SENHA_SISTEMA) {
-    sessionStorage.setItem('acesso_autorizado', 'true');
-    liberarTela();
-  } else {
-    erroEl.style.display = 'block';
-    inputEl.value = '';
-    inputEl.focus();
-  }
-}
-
-function liberarTela() {
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('appContainer').style.display = 'block';
-}
-
-function bloquearAcesso() {
-  sessionStorage.removeItem('acesso_autorizado');
-  document.getElementById('appContainer').style.display = 'none';
-  document.getElementById('loginOverlay').style.display = 'flex';
-  document.getElementById('inputSenha').value = '';
-  document.getElementById('erroSenha').style.display = 'none';
-}
-
-window.addEventListener('load', () => {
-  if (sessionStorage.getItem('acesso_autorizado') === 'true') {
-    liberarTela();
-  }
-});
-
-/* --- Função de Máscara Moeda (Real em Tempo Real) --- */
+/* --- Máscaras de Entrada --- */
 function formatarMoedaInput(input) {
   let value = input.value.replace(/\D/g, "");
-  if (value === "") {
-    input.value = "";
-    return;
-  }
+  if (value === "") { input.value = ""; return; }
   value = (parseInt(value, 10) / 100).toFixed(2);
   value = value.replace(".", ",");
   value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   input.value = value;
 }
 
-/* --- Função de Máscara CNPJ --- */
 function formatarCNPJInput(input) {
   let v = input.value.replace(/\D/g, "");
   if (v.length > 14) v = v.slice(0, 14);
-
   v = v.replace(/^(\d{2})(\d)/, "$1.$2");
   v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
   v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
   v = v.replace(/(\d{4})(\d)/, "$1-$2");
-
   input.value = v;
 }
 
-/* --- Lógica da Calculadora --- */
+/* --- Manipulação da Tabela --- */
 let contadorLinhas = 0;
 
 function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO', justificativa = '') {
@@ -96,7 +50,7 @@ function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', val
       </select>
       <input type="text" class="input-justificativa" value="${justificativa}" placeholder="Motivo do expurgo..." style="display:none; margin-top:4px; font-size:11px;">
     </td>
-    <td style="text-align:center;">
+    <td class="col-acao" style="text-align:center;">
       <button type="button" class="btn-remover" onclick="removerLinha(this)">Excluir</button>
     </td>
   `;
@@ -142,7 +96,7 @@ adicionarLinhaTabela();
 adicionarLinhaTabela();
 adicionarLinhaTabela();
 
-// Funções estatísticas
+// Cálculos estatísticos
 function calcularMedia(arr) {
   return arr.reduce((acc, v) => acc + v, 0) / arr.length;
 }
@@ -155,10 +109,11 @@ function calcularCV(arr) {
   return (desvioPadrao / media) * 100;
 }
 
-// Cálculo e Auditoria da Pesquisa (IN 65/2021 & Lei 14.133/2021)
+// Botão Calcular
 document.getElementById('btnCalcular').addEventListener('click', function() {
   const linhas = document.querySelectorAll('#corpoTabela tr');
   const divResultado = document.getElementById('resultado');
+  const btnPdf = document.getElementById('btnGerarPDF');
 
   let itensValidos = [];
 
@@ -183,10 +138,11 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     divResultado.className = 'result-box erro';
     divResultado.innerHTML = '<strong>Erro:</strong> Informe pelo menos um valor válido para calcular.';
     divResultado.style.display = 'block';
+    btnPdf.style.display = 'none';
     return;
   }
 
-  // Loop de saneamento automático (Outliers)
+  // Outlier auto-expurgo
   let valores = itensValidos.map(i => i.valor);
   let cvAtual = calcularCV(valores);
   let houveExpurgoAutomatico = false;
@@ -219,7 +175,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     cvAtual = calcularCV(valores);
   }
 
-  // Processamento Estatístico
+  // Resultados Finais
   let qtdValidos = itensValidos.length;
   let qtdDesconsiderados = Array.from(document.querySelectorAll('.select-expurgo')).filter(s => s.value !== 'VALIDO').length;
 
@@ -252,7 +208,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     if (cvFinal <= 25) {
       recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Recomenda-se utilizar a <strong>MÉDIA SIMPLES (R$ ${mediaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")})</strong> como valor estimado.`;
     } else {
-      recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Amostra com dispersão. Recomenda-se utilizar a <strong>MEDIANA (R$ ${medianaFinal.toFixed(2).replace('.', ',')})</strong> para mitigar distorções de preços.`;
+      recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Amostra com dispersão. Recomenda-se utilizar a <strong>MEDIANA (R$ ${medianaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")})</strong> para mitigar distorções de preços.`;
     }
 
     dadosEstatisticos = `
@@ -261,21 +217,20 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
       <strong>Coeficiente de Variação Final (CV):</strong> ${cvFinal.toFixed(2).replace('.', ',')}% - ${statusCv}
     `;
   } else {
-    recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Com 1 valor válido (mercado exclusivo/restrito), adote o <strong>MENOR PREÇO / VALOR ÚNICO (R$ ${menorPrecoFinal.toFixed(2).replace('.', ',')})</strong> com a devida justificativa técnica de inviabilidade de ampliação de fornecedores.`;
+    recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Com 1 valor válido (mercado exclusivo/restrito), adote o <strong>MENOR PREÇO / VALOR ÚNICO (R$ ${menorPrecoFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")})</strong> devidamente fundamentado.`;
     dadosEstatisticos = `
       <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
       <span style="color:#1a73e8; font-weight:bold;">ℹ️ Amostra de item específico / mercado restrito.</span>
     `;
   }
 
-  // Nota Orientativa para Amostra Restrita (Art. 6º, § 4º da IN 65/2021)
   let alertaAmostra = '';
   if (qtdValidos < 3) {
     alertaAmostra = `
       <div style="margin-bottom:12px; padding:10px; background:#e8f0fe; border-left:4px solid #1a73e8; color:#174ea6; font-size:12px; line-height:1.4;">
         <strong>📌 ORIENTAÇÃO PARA A INSTRUÇÃO PROCESSUAL (Art. 6º, § 4º, IN SEGES/ME 65/2021):</strong><br>
         A pesquisa restou consolidada com <strong>${qtdValidos} preço(s) válido(s)</strong>.<br>
-        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado que impediu a obtenção do número mínimo de 3 cotações.</em>
+        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado.</em>
       </div>
     `;
   }
@@ -316,6 +271,30 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
   `;
   
   divResultado.style.display = 'block';
+  btnPdf.style.display = 'inline-block';
 });
+
+/* --- Exportação para PDF --- */
+function gerarPDF() {
+  const elemento = document.getElementById('conteudoParaPDF');
+  const cabecalho = document.getElementById('cabecalhoPDF');
+  const colunasAcao = document.querySelectorAll('.col-acao');
+
+  cabecalho.style.display = 'block';
+  colunasAcao.forEach(el => el.style.display = 'none');
+
+  const opcoes = {
+    margin:       10,
+    filename:     `Parecer_Pesquisa_Precos_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opcoes).from(elemento).save().then(() => {
+    cabecalho.style.display = 'none';
+    colunasAcao.forEach(el => el.style.display = '');
+  });
+}
 
 document.getElementById('btnAdicionar').addEventListener('click', () => adicionarLinhaTabela());
