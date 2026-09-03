@@ -250,7 +250,7 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
       : "<span style='color:red; font-weight:bold;'>Heterogêneo (> 25%)</span>";
 
     if (cvFinal <= 25) {
-      recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Recomenda-se utilizar a <strong>MÉDIA SIMPLES (R$ ${mediaFinal.toFixed(2).replace('.', ',')})</strong> como valor estimado.`;
+      recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Recomenda-se utilizar a <strong>MÉDIA SIMPLES (R$ ${mediaFinal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")})</strong> como valor estimado.`;
     } else {
       recomendacaoMetodo = `<strong>Sugestão Metodológica:</strong> Amostra com dispersão. Recomenda-se utilizar a <strong>MEDIANA (R$ ${medianaFinal.toFixed(2).replace('.', ',')})</strong> para mitigar distorções de preços.`;
     }
