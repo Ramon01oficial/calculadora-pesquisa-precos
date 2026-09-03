@@ -1,3 +1,20 @@
+// Trava de Acesso Simples por Senha
+(function verificarAcesso() {
+  const SENHA_CORRETA = "ramon123"; // Escolha a senha aqui
+  let senhaInformada = prompt("Digite a senha de acesso à Calculadora de Preços:");
+
+  if (senhaInformada !== SENHA_CORRETA) {
+    alert("Acesso negado. Senha incorreta.");
+    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>Acesso não autorizado.</h2>";
+  }
+})();
+
+let contadorLinhas = 0;
+
+function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO') {
+
+
+
 let contadorLinhas = 0;
 
 function adicionarLinhaTabela(fornecedor = '', cnpj = '', tipo = 'Pública', valor = '', statusExpurgo = 'VALIDO') {
