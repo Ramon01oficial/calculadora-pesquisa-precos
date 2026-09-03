@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnAdicionar = document.getElementById("btnAdicionar");
   const btnCalcular = document.getElementById("btnCalcular");
   const painelResultado = document.getElementById("painelResultado");
+  const painelJustificativaDoisItens = document.getElementById("painelJustificativaDoisItens");
+  const inputJustificativaDoisItens = document.getElementById("inputJustificativaDoisItens");
 
   function formatarCNPJ(v) {
     v = v.replace(/\D/g, "");
@@ -39,21 +41,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (e.target.classList.contains("input-valor")) {
       e.target.value = formatarMoeda(e.target.value);
+      verificarQuantidadeValidosDinamica();
     }
   });
 
   corpoTabela.addEventListener("change", (e) => {
     if (e.target.classList.contains("select-status")) {
-      const td = e.target.closest("td");
-      const inputJustificativa = td.querySelector(".input-justificativa");
-      if (e.target.value !== "valido") {
-        inputJustificativa.style.display = "block";
-      } else {
-        inputJustificativa.style.display = "none";
-        inputJustificativa.value = "";
-      }
+      verificarQuantidadeValidosDinamica();
     }
   });
+
+  function verificarQuantidadeValidosDinamica() {
+    const linhas = corpoTabela.querySelectorAll("tr");
+    let validosCount = 0;
+    linhas.forEach(tr => {
+      const val = moedaParaFloat(tr.querySelector(".input-valor").value);
+      const status = tr.querySelector(".select-status").value;
+      if (val > 0 && status === "valido") {
+        validosCount++;
+      }
+    });
+
+    if (validosCount === 2) {
+      painelJustificativaDoisItens.style.display = "block";
+    } else {
+      painelJustificativaDoisItens.style.display = "none";
+    }
+  }
 
   corpoTabela.addEventListener("blur", (e) => {
     if (e.target.classList.contains("input-valor")) {
@@ -67,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target.classList.contains("btn-del")) {
       e.target.closest("tr").remove();
       atualizarNumeracao();
+      verificarQuantidadeValidosDinamica();
     }
   });
 
@@ -95,10 +110,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <td>
         <select class="input-sim select-status">
           <option value="valido" selected>Válido</option>
-          <option value="excluido_1">Excluído (Inexequível/Excessivo)</option>
+          <option value="excluido_1">Excluído (Inex./Excessivo)</option>
           <option value="excluido_2">Excluído (Outlier/Ajuste)</option>
         </select>
-        <input type="text" class="input-sim input-justificativa" placeholder="Descreva a justificativa do expurgo..." style="display: none; margin-top: 4px;">
       </td>
       <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
     `;
@@ -113,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
     linhas.forEach((tr, idx) => {
       const inputValor = tr.querySelector(".input-valor");
       const selectStatus = tr.querySelector(".select-status");
-      const inputJustificativa = tr.querySelector(".input-justificativa");
       let val = moedaParaFloat(inputValor.value);
 
       if (val > 0) {
@@ -121,10 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
           index: idx,
           tr: tr,
           selectStatus: selectStatus,
-          inputJustificativa: inputJustificativa,
           valor: val,
-          statusManual: selectStatus.value,
-          justificativa: inputJustificativa.value
+          statusManual: selectStatus.value
         });
       }
     });
@@ -137,9 +148,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let validosAtuais = itens.filter(i => i.statusManual === "valido");
     let expurgadosCount = itens.length - validosAtuais.length;
 
-    // Regra específica ajustada: Permite exatamente 2 preços válidos
     if (validosAtuais.length < 2) {
-      alert("Atenção: A pesquisa de preços requer no mínimo 2 preços válidos (conforme regra de itens específicos/justificados). Ajuste o status ou adicione mais itens.");
+      alert("Atenção: A pesquisa de preços requer no mínimo 2 preços válidos. Ajuste o status ou adicione mais itens.");
+      return;
+    }
+
+    if (validosAtuais.length === 2 && inputJustificativaDoisItens.value.trim() === "") {
+      alert("Atenção: Como a pesquisa possui apenas 2 preços válidos, é obrigatório registrar a justificativa para constar nos autos.");
+      inputJustificativaDoisItens.focus();
       return;
     }
 
@@ -196,9 +212,16 @@ document.addEventListener("DOMContentLoaded", () => {
       badgeCV.style.fontWeight = "700";
     }
 
-    if (expurgadosCount > 0) {
+    if (expurgadosCount > 0 || validosAtuais.length === 2) {
       alertaAviso.style.display = "block";
-      textoInfo.textContent = `A pesquisa foi consolidada com ${validosAtuais.length} preços válidos, restando ${expurgadosCount} item(ns) desconsiderado(s) mediante justificativa formalizada.`;
+      let msg = `A pesquisa foi consolidada com ${validosAtuais.length} preços válidos`;
+      if (validosAtuais.length === 2) {
+        msg += ` (com indicação de justificativa nos autos)`;
+      }
+      if (expurgadosCount > 0) {
+        msg += `, restando ${expurgadosCount} item(ns) desconsiderado(s)`;
+      }
+      textoInfo.textContent = msg + ".";
     } else {
       alertaAviso.style.display = "none";
       textoInfo.textContent = "A pesquisa restou consolidada com os preços informados, atendendo aos parâmetros de homogeneidade.";
