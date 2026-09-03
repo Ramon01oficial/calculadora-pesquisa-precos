@@ -29,47 +29,44 @@
         </thead>
         <tbody id="corpoTabela">
           <tr>
-            <td style="text-align: center; font-weight: 600; color: #0284c7;">1</td>
-            <td><input type="text" class="input-sim" value="Nome do fornecedor"></td>
-            <td><input type="text" class="input-sim" value="00.000.000/0000-00"></td>
+            <td style="text-align: center; font-weight: 600;">1</td>
+            <td><input type="text" class="input-sim" placeholder="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim" placeholder="00.000.000/0000-00"></td>
             <td>
               <select class="input-sim">
-                <option selected>Pública</option>
-                <option>Privada</option>
+                <option value="Pública" selected>Pública</option>
+                <option value="Privada">Privada</option>
               </select>
             </td>
-            <td><input type="text" class="input-sim input-highlight" value="5,25"></td>
-            <td>
-              <span class="status-badge-excluido">Excluído 2ª</span>
-              <span class="status-sub">Expurgado automati.</span>
-            </td>
+            <td><input type="text" class="input-sim" value="0,00"></td>
+            <td><span class="status-badge-valido">Válido</span></td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
           <tr>
             <td style="text-align: center; font-weight: 600;">2</td>
-            <td><input type="text" class="input-sim" value="Nome do fornecedor"></td>
-            <td><input type="text" class="input-sim" value="00.000.000/0000-00"></td>
+            <td><input type="text" class="input-sim" placeholder="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim" placeholder="00.000.000/0000-00"></td>
             <td>
               <select class="input-sim">
-                <option selected>Pública</option>
-                <option>Privada</option>
+                <option value="Pública" selected>Pública</option>
+                <option value="Privada">Privada</option>
               </select>
             </td>
-            <td><input type="text" class="input-sim" value="25,25"></td>
+            <td><input type="text" class="input-sim" value="0,00"></td>
             <td><span class="status-badge-valido">Válido</span></td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
           <tr>
             <td style="text-align: center; font-weight: 600;">3</td>
-            <td><input type="text" class="input-sim" value="Nome do fornecedor"></td>
-            <td><input type="text" class="input-sim" value="00.000.000/0000-00"></td>
+            <td><input type="text" class="input-sim" placeholder="Nome do fornecedor"></td>
+            <td><input type="text" class="input-sim" placeholder="00.000.000/0000-00"></td>
             <td>
               <select class="input-sim">
-                <option selected>Pública</option>
-                <option>Privada</option>
+                <option value="Pública" selected>Pública</option>
+                <option value="Privada">Privada</option>
               </select>
             </td>
-            <td><input type="text" class="input-sim" value="25,25"></td>
+            <td><input type="text" class="input-sim" value="0,00"></td>
             <td><span class="status-badge-valido">Válido</span></td>
             <td style="text-align: center;"><button class="btn-del">Excluir</button></td>
           </tr>
@@ -82,45 +79,31 @@
       <div class="legenda-item"><span class="legenda-box leg-2"></span> Excluído na segunda análise (Ajuste Técnico / Outlier)</div>
     </div>
 
-    <div class="painel-resultado">
-      <div class="alert-box alert-info">
-        <strong>📌 ORIENTAÇÃO PARA A INSTRUÇÃO PROCESSUAL (Art. 6º, § 4º, IN SEGES/ME 65/2021):</strong><br>
-        A pesquisa restou consolidada com <strong>2 preço(s) válido(s)</strong>.<br>
-        <em>Para fins de auditoria, certifique-se de registrar nos autos a justificativa da especificidade do objeto ou limitação de mercado que impediu a obtenção do número mínimo de 3 cotações.</em>
-      </div>
+    <!-- Painel de Resultados (Oculto até calcular) -->
+    <div id="painelResultado" class="painel-resultado" style="display: none;">
+      <div id="alertaInfo" class="alert-box alert-info"></div>
+      <div id="alertaAviso" class="alert-box alert-warning" style="display: none;"></div>
 
-      <div class="alert-box alert-warning">
-        ⚡ O sistema realizou o expurgo automático de outlier(s) para sanear o CV &le; 25%.
-      </div>
-
-      <div class="stats-summary">
-        <strong>Preços Válidos Utilizados:</strong> 2 item(ns)<br>
-        <strong>Preços Desconsiderados (Expurgados):</strong> 1 item(ns)
-      </div>
+      <div class="stats-summary" id="resumoContagem"></div>
 
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-label">Média Simples</div>
-          <div class="metric-value">R$ 25,25</div>
+          <div class="metric-value" id="valMedia">R$ 0,00</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Mediana</div>
-          <div class="metric-value">R$ 25,25</div>
+          <div class="metric-value" id="valMediana">R$ 0,00</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Menor Preço</div>
-          <div class="metric-value">R$ 25,25</div>
+          <div class="metric-value" id="valMenor">R$ 0,00</div>
         </div>
       </div>
 
-      <div class="statistical-details">
-        <strong>Desvio Padrão Final:</strong> R$ 0,00<br>
-        <strong>Coeficiente de Variação Final (CV):</strong> 0,00% - <span class="badge-success">Homogêneo (&le; 25%)</span>
-      </div>
+      <div class="statistical-details" id="detalhesEstatistica"></div>
 
-      <div class="recommendation-box">
-        <strong>Sugestão Metodológica:</strong> Recomenda-se utilizar a <strong>MÉDIA SIMPLES (R$ 25,25)</strong> como valor estimado.
-      </div>
+      <div class="recommendation-box" id="caixaSugestao"></div>
     </div>
 
     <div class="action-buttons">
